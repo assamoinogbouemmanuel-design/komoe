@@ -1,0 +1,110 @@
+[
+  {
+    "id": "COM-001",
+    "nom": "Cocody",
+    "region": "Lagunes",
+    "district": "Abidjan",
+    "budgetAlloue": 15000000000,
+    "budgetDepense": 4500000000,
+    "coordonnees": {
+      "lat": 5.3599,
+      "lng": -4.0083
+    }
+  },
+  {
+    "id": "COM-002",
+    "nom": "Yopougon",
+    "region": "Lagunes",
+    "district": "Abidjan",
+    "budgetAlloue": 20000000000,
+    "budgetDepense": 12000000000,
+    "coordonnees": {
+      "lat": 5.3364,
+      "lng": -4.0536
+    }
+  },
+  {
+    "id": "COM-003",
+    "nom": "Marcory",
+    "region": "Gbêkê",
+    "district": "Vallée du Bandama",
+    "budgetAlloue": 8000000000,
+    "budgetDepense": 3200000000,
+    "coordonnees": {
+      "lat": 7.6939,
+      "lng": -5.0307
+    }
+  },
+  {
+    "id": "COM-003",
+    "nom": "Koumassi",
+    "region": "Abidjan",
+    "district": "Vallée du Bandama",
+    "budgetAlloue": 8000000000,
+    "budgetDepense": 3200000000,
+    "coordonnees": {
+      "lat": 7.6939,
+      "lng": -5.0307
+    }
+  },
+  {
+    "id": "COM-004",
+    "nom": "Songon",
+    "region": "Abidjan",
+    "district": "Vallée du Bandama",
+    "budgetAlloue": 8000000000,
+    "budgetDepense": 3200000000,
+    "coordonnees": {
+      "lat": 7.6939,
+      "lng": -5.0307
+    }
+  },
+  {
+    "id": "COM-005",
+    "nom": "Koumassi",
+    "region": "Abidjan",
+    "district": "Vallée du Bandama",
+    "budgetAlloue": 8000000000,
+    "budgetDepense": 3200000000,
+    "coordonnees": {
+      "lat": 7.6939,
+      "lng": -5.0307
+    }
+  },
+  {
+    "id": "COM-006",
+    "nom": "Bingerville",
+    "region": "Abidjan",
+    "district": "Vallée du Bandama",
+    "budgetAlloue": 8000000000,
+    "budgetDepense": 3200000000,
+    "coordonnees": {
+      "lat": 7.6939,
+      "lng": -5.0307
+    }
+  },
+  {
+    "id": "COM-007",
+    "nom": "plateau",
+    "region": "Gbêkê",
+    "district": "Vallée du Bandama",
+    "budgetAlloue": 8000000000,
+    "budgetDepense": 3200000000,
+    "coordonnees": {
+      "lat": 7.6939,
+      "lng": -5.0307
+    }
+  },
+  {
+    "id": "COM-008",
+    "nom": "Port-bouet",
+    "region": "Abidjan",
+    "district": "Vallée du Bandama",
+    "budgetAlloue": 80000000,
+    "budgetDepense": 3200000000,
+    "coordonnees": {
+      "lat": 7.699,
+      "lng": -5.307
+    }
+  }
+]

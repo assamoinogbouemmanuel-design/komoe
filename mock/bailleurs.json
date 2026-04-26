@@ -1,0 +1,16 @@
+[
+  {
+    "id": "BAIL-001",
+    "nom": "Banque Mondiale",
+    "type": "International",
+    "fondsAlloues": 50000000000,
+    "communesSoutenues": ["COM-001", "COM-003"]
+  },
+  {
+    "id": "BAIL-002",
+    "nom": "Agence Française de Développement (AFD)",
+    "type": "Bilatéral",
+    "fondsAlloues": 25000000000,
+    "communesSoutenues": ["COM-002"]
+  }
+]

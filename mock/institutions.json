@@ -1,0 +1,18 @@
+[
+  {
+    "id": "INST-001",
+    "nom": "Banque Centrale des États de l'Afrique de l'Ouest (BCEAO)",
+    "type": "Banque Centrale",
+    "niveauLiquidite": 1500000000000,
+    "auditsRealises": 42,
+    "scoreConformite": 98
+  },
+  {
+    "id": "INST-002",
+    "nom": "Banque Nationale d'Investissement (BNI)",
+    "type": "Banque Commerciale",
+    "niveauLiquidite": 350000000000,
+    "auditsRealises": 15,
+    "scoreConformite": 92
+  }
+]

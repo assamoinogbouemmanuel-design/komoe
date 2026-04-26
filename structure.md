@@ -155,7 +155,7 @@ komoe-dashboard/
 │
 ├── src/
 │   │
-│   ├── app/                          # App Router Next.js 14
+│   ├── app/                          # App Router Next.js 16²²²²²²²²²²²²²²²²²²
 │   │   ├── layout.tsx                # Layout racine (font, metadata, providers)
 │   │   ├── globals.css               # Styles globaux + variables CSS
 │   │   ├── page.tsx                  # Page d'accueil → redirect /dashboard
@@ -173,8 +173,6 @@ komoe-dashboard/
 │   │   │   │
 │   │   │   ├── transactions/
 │   │   │   │   ├── page.tsx          # Liste de toutes les transactions
-│   │   │   │   ├── nouvelle/
-│   │   │   │   │   └── page.tsx      # Formulaire saisie nouvelle transaction
 │   │   │   │   └── [id]/
 │   │   │   │       └── page.tsx      # Détail d'une transaction (hash, bloc, etc.)
 │   │   │   │
@@ -199,7 +197,9 @@ komoe-dashboard/
 │   │   │   ├── wallet/
 │   │   │   │   └── page.tsx          # Gestion wallet, solde, historique TX
 │   │   │   │
-│   │   │   └── parametres/
+│   │   │   └── roles/
+│   │   │       └── page.tsx          # Paramètres compte et gestion des roles et utilisateurs
+│   │   │   └── profil/
 │   │   │       └── page.tsx          # Paramètres compte et commune
 │   │   │
 │   │   └── api/                      # API Routes Next.js (mock backend Phase 1)
@@ -221,11 +221,15 @@ komoe-dashboard/
 │   │   ├── ui/                       # Composants UI de base (design system)
 │   │   │   ├── Button.tsx            # Bouton (variantes : primary, ghost, danger)
 │   │   │   ├── Badge.tsx             # Badge de statut (confirmé, en attente, etc.)
-│   │   │   ├── Card.tsx              # Carte conteneur avec variantes
+│   │   │   ├── StatsCard.tsx         # Carte conteneur avec les statistiques
+ ├── DataTable.tsx         # Table de données réutilisable
+│   │   │   ├── ModalCenter.tsx             # Modale (dialogue de confirmation)
+│   │   │   ├── ReusableForm.tsx             # Modale (incluant tous les champs input comme radio n upload-iage descruitpion texterae)
+│   │   ├─  ├── form/
 │   │   │   ├── Input.tsx             # Champ de saisie stylisé
 │   │   │   ├── Select.tsx            # Sélecteur déroulant
-│   │   │   ├── Table.tsx             # Table de données réutilisable
-│   │   │   ├── Modal.tsx             # Modale (dialogue de confirmation)
+│   │   │   ├── Toast.tsx           # Notifications push
+│   │   │   ├── DetailsCard.tsx       # Statistiques détaillées
 │   │   │   ├── Spinner.tsx           # Indicateur de chargement
 │   │   │   ├── Tooltip.tsx           # Info-bulle
 │   │   │   ├── Alert.tsx             # Alertes (success, error, warning, info)

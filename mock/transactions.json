@@ -1,0 +1,41 @@
+[
+  {
+    "id": "TX-001",
+    "type": "DEPENSE",
+    "montant": 45000000,
+    "categorie": "Infrastructure",
+    "beneficiaire": "COLAS CI SA",
+    "communeId": "COM-001",
+    "bailleurId": "BAIL-001",
+    "description": "Réhabilitation route principale Cocody",
+    "date": "2026-04-10T14:30:00Z",
+    "txHash": "0x3f8a4b...e841",
+    "status": "CONFIRME"
+  },
+  {
+    "id": "TX-002",
+    "type": "RECETTE",
+    "montant": 120000000,
+    "categorie": "Fonds Alloués",
+    "beneficiaire": "Mairie de Yopougon",
+    "communeId": "COM-002",
+    "bailleurId": "BAIL-002",
+    "description": "Subvention AFD pour assainissement",
+    "date": "2026-04-12T09:15:00Z",
+    "txHash": "0x9a2b1c...d732",
+    "status": "CONFIRME"
+  },
+  {
+    "id": "TX-003",
+    "type": "AUDIT_LIQUIDITE",
+    "montant": 0,
+    "categorie": "Audit",
+    "beneficiaire": "BCEAO",
+    "communeId": "",
+    "institutionId": "INST-001",
+    "description": "Audit de liquidité trimestriel Q1 2026",
+    "date": "2026-04-15T16:00:00Z",
+    "txHash": "0x4e5f6g...h890",
+    "status": "CONFIRME"
+  }
+]
