@@ -37,8 +37,8 @@ export default function CitoyensCommune() {
   return (
     <div className="animate-in fade-in duration-500">
       <div className="mb-8">
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Registre des Citoyens</h2>
-        <p className="text-slate-500 mt-1 font-medium text-sm">Gestion des habitants inscrits et vérifiés sur la plateforme.</p>
+        <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Registre des Citoyens</h2>
+        <p className="text-muted-foreground mt-1 font-medium text-sm">Gestion des habitants inscrits et vérifiés sur la plateforme.</p>
       </div>
 
       <DataTable 

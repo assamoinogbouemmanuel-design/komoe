@@ -67,7 +67,7 @@ export default function BlockchainMap() {
   }, []);
 
   return (
-    <div ref={containerRef} className="w-full h-[500px] bg-slate-900 rounded-3xl overflow-hidden relative">
+    <div ref={containerRef} className="w-full h-[500px] bg-primary rounded-3xl overflow-hidden relative">
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2 pointer-events-none">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-[#cd6133]"></span>

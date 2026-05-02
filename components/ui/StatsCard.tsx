@@ -1,6 +1,9 @@
 "use client";
-import { TrendingUp, TrendingDown } from "lucide-react";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface StatsCardProps {
   label: string;
@@ -8,22 +11,19 @@ interface StatsCardProps {
   delta?: string;
   trend?: "up" | "down";
   isCurrency?: boolean;
-  href?: string; // redirection au clic
+  href?: string;
   shouldTruncate?: boolean;
+  icon?: React.ReactNode;
 }
 
 function formatMontant(value: number): string {
   if (value === 0) return "0";
-  if (value >= 1_000_000) return `${Math.round(value / 1_000_000)}M`;
-  if (value >= 1_000) return `${Math.round(value / 1_000)}K`;
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace('.0', '')}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1).replace('.0', '')}K`;
   return `${Math.round(value)}`;
 }
 
-function formatCount(value: number): string {
-  return value < 10 ? `0${value}` : `${value}`;
-}
-
-export default function StatsCard({ label, value, delta, trend = "up", isCurrency = false, href, shouldTruncate = true }: StatsCardProps) {
+export default function StatsCard({ label, value, delta, trend = "up", isCurrency = false, href, shouldTruncate = true, icon }: StatsCardProps) {
   const isUp = trend === "up";
   const showFCFA = isCurrency || (typeof value === "string" && value.includes("FCFA"));
 
@@ -32,48 +32,61 @@ export default function StatsCard({ label, value, delta, trend = "up", isCurrenc
     displayValue = formatMontant(value);
   } else if (typeof value === "string" && value.includes("FCFA")) {
     displayValue = value.replace(" FCFA", "").trim();
-  } else if (typeof value === "number") {
-    displayValue = formatCount(value);
   } else {
-    displayValue = value || "-";
+    displayValue = value.toString();
   }
 
-  // const deltaBlock = delta ? (
-  //   <div className={`flex items-center gap-1 text-[10px] font-medium flex-shrink-0 ${isUp ? "text-emerald-500" : "text-rose-500"}`}>
-  //     <span className="whitespace-nowrap">{delta}</span>
-  //     {isUp
-  //       ? <TrendingUp size={16} strokeWidth={2.5} className="flex-shrink-0" />
-  //       : <TrendingDown size={16} strokeWidth={2.5} className="flex-shrink-0" />
-  //     }
-  //   </div>
-  // ) : null;
-
   const inner = (
-    <>
-      <p className="text-slate-600 text-[11px] font-semibold mb-4 px-1 leading-tight">{label}</p>
-      <div className="flex items-center justify-between px-1 gap-2 min-w-0">
+    <div className="relative z-10">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-muted-foreground dark:text-muted-foreground text-xs font-bold uppercase tracking-wider">{label}</p>
+        {icon && <div className="text-muted-foreground/80">{icon}</div>}
+      </div>
+      
+      <div className="flex items-end gap-2">
         {showFCFA ? (
-          <div className="flex items-baseline gap-1.5 min-w-0 flex-1">
-            <h3 className={`text-xl font-extrabold text-slate-900 tracking-tighter leading-none ${shouldTruncate ? "truncate" : ""}`}>{displayValue}</h3>
-            <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase flex-shrink-0">FCFA</span>
+          <div className="flex items-baseline gap-1">
+            <h3 className="text-3xl font-black text-foreground dark:text-white tracking-tighter tabular-nums">{displayValue}</h3>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase ml-0.5">FCFA</span>
           </div>
         ) : (
-          <h3 className={`text-2xl font-extrabold text-slate-900 tracking-tighter flex-1 ${shouldTruncate ? "truncate" : ""}`}>{displayValue}</h3>
+          <h3 className="text-3xl font-black text-foreground dark:text-white tracking-tighter tabular-nums">{displayValue}</h3>
         )}
-        {/* {deltaBlock} */}
+
+        {delta && (
+          <div className={cn("flex items-center gap-1 text-[10px] font-bold mb-1 ml-2 px-1.5 py-0.5 rounded-md", isUp ? "text-emerald-700 bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-400" : "text-rose-700 bg-rose-100 dark:bg-rose-900/40 dark:text-rose-400")}>
+            {isUp ? <TrendingUp size={12} strokeWidth={3} /> : <TrendingDown size={12} strokeWidth={3} />}
+            <span>{delta}</span>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 
-  const base = "bg-white px-4 py-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 min-w-0";
+  const baseClasses = "relative overflow-hidden bg-card bg-card/50 border border-border dark:border-white/10 p-5 rounded-2xl shadow-sm transition-all duration-300 group";
 
   if (href) {
     return (
-      <Link href={href} className={`${base} block cursor-pointer hover:border-slate-300 hover:-translate-y-0.5`}>
-        {inner}
+      <Link href={href} className="block">
+        <motion.div
+          whileHover={{ y: -4, scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          className={cn(baseClasses, "cursor-pointer hover:shadow-lg hover:border-primary/30 dark:hover:border-primary/50")}
+        >
+          {inner}
+        </motion.div>
       </Link>
     );
   }
 
-  return <div className={base}>{inner}</div>;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={baseClasses}
+    >
+      <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-primary/10 to-accent/5 dark:from-primary/20 dark:to-accent/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+      {inner}
+    </motion.div>
+  );
 }

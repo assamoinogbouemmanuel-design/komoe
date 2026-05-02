@@ -24,8 +24,8 @@ export default function SignalementsCommune() {
       key: 'titre',
       render: (val, item) => (
         <div>
-          <div className="font-bold text-slate-900">{val}</div>
-          <div className="text-xs text-slate-500 mt-1">{item.categorie} • {new Date(item.date).toLocaleDateString()}</div>
+          <div className="font-bold text-foreground">{val}</div>
+          <div className="text-xs text-muted-foreground mt-1">{item.categorie} • {new Date(item.date).toLocaleDateString()}</div>
         </div>
       )
     },
@@ -58,8 +58,8 @@ export default function SignalementsCommune() {
     <div className="animate-in fade-in duration-500">
       <div className="mb-8 flex justify-between items-end">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Signalements Citoyens</h2>
-          <p className="text-slate-500 mt-1 font-medium text-sm">Incidents et requêtes remontés par la population.</p>
+          <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Signalements Citoyens</h2>
+          <p className="text-muted-foreground mt-1 font-medium text-sm">Incidents et requêtes remontés par la population.</p>
         </div>
         <Button className="bg-brand-orange hover:bg-[#b05020] text-white shadow-md" onClick={() => setIsDrawerOpen(true)}>
           + Nouveau Signalement
@@ -101,7 +101,7 @@ export default function SignalementsCommune() {
             <ImageUpload name="photos" maxImages={3} />
           </FormField>
 
-          <div className="pt-6 border-t border-slate-100 flex justify-end space-x-3">
+          <div className="pt-6 border-t border-border flex justify-end space-x-3">
             <Button variant="ghost" type="button" onClick={() => setIsDrawerOpen(false)}>Annuler</Button>
             <Button type="submit" className="bg-brand-orange hover:bg-[#b05020] text-white">Soumettre</Button>
           </div>

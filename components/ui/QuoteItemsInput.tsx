@@ -45,27 +45,27 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="border border-slate-100 rounded-[24px] overflow-hidden bg-white shadow-sm">
+      <div className="border border-border rounded-[24px] overflow-hidden bg-card shadow-sm">
         {/* Table header */}
-        <div className="hidden sm:grid grid-cols-[2fr_1fr_1.5fr_1fr_auto] gap-2 px-4 py-3 bg-slate-50 border-b border-slate-100">
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Quantité</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Prix U. HT</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Total HT</div>
+        <div className="hidden sm:grid grid-cols-[2fr_1fr_1.5fr_1fr_auto] gap-2 px-4 py-3 bg-muted border-b border-border">
+          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Description</div>
+          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Quantité</div>
+          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right">Prix U. HT</div>
+          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right">Total HT</div>
           <div className="w-8"></div>
         </div>
 
         {/* Items */}
         <div className="divide-y divide-slate-50">
           {items.map((item, i) => (
-            <div key={i} className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1.5fr_1fr_auto] gap-3 sm:gap-2 p-4 sm:p-2 sm:px-4 items-center group transition-colors hover:bg-slate-50/50">
+            <div key={i} className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1.5fr_1fr_auto] gap-3 sm:gap-2 p-4 sm:p-2 sm:px-4 items-center group transition-colors hover:bg-muted/50">
               <input
                 type="text"
                 value={item.designation}
                 onChange={e => updateItem(i, "designation", e.target.value)}
                 disabled={disabled}
                 placeholder="Ex: Main d'oeuvre"
-                className="w-full bg-slate-50 sm:bg-transparent border border-slate-200 sm:border-transparent rounded-xl px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all"
+                className="w-full bg-muted sm:bg-transparent border border-border sm:border-transparent rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:bg-card focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all"
               />
               <input
                 type="number"
@@ -74,7 +74,7 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
                 onChange={e => updateItem(i, "quantity", Math.max(1, parseInt(e.target.value) || 0))}
                 disabled={disabled}
                 placeholder="Qté"
-                className="w-full bg-slate-50 sm:bg-transparent border border-slate-200 sm:border-transparent rounded-xl px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 text-center focus:bg-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all"
+                className="w-full bg-muted sm:bg-transparent border border-border sm:border-transparent rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground text-center focus:bg-card focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all"
               />
               <div className="relative">
                 <input
@@ -85,12 +85,12 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
                   onChange={e => updateItem(i, "unit_price", parseFloat(e.target.value) || 0)}
                   disabled={disabled}
                   placeholder="Prix"
-                  className="w-full bg-slate-50 sm:bg-transparent border border-slate-200 sm:border-transparent rounded-xl px-3 py-2 pr-10 text-sm text-slate-900 placeholder:text-slate-400 text-right focus:bg-white focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all tabular-nums"
+                  className="w-full bg-muted sm:bg-transparent border border-border sm:border-transparent rounded-xl px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground text-right focus:bg-card focus:border-brand-blue focus:ring-1 focus:ring-brand-blue outline-none transition-all tabular-nums"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">FCFA</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground pointer-events-none">FCFA</span>
               </div>
-              <div className="text-right text-sm font-bold text-slate-900 tabular-nums px-3 py-2">
-                {((item.quantity || 0) * (item.unit_price || 0)).toLocaleString()} <span className="text-[10px] text-slate-400 font-normal">FCFA</span>
+              <div className="text-right text-sm font-bold text-foreground tabular-nums px-3 py-2">
+                {((item.quantity || 0) * (item.unit_price || 0)).toLocaleString()} <span className="text-[10px] text-muted-foreground font-normal">FCFA</span>
               </div>
               <div className="flex justify-end">
                 <button
@@ -107,13 +107,13 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
         </div>
 
         {/* Add button & Totals */}
-        <div className="bg-slate-50 border-t border-slate-100 p-4">
+        <div className="bg-muted border-t border-border p-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
             <button
               type="button"
               disabled={disabled}
               onClick={addItem}
-              className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-brand-orange px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-brand-orange transition-all shadow-sm active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-brand-orange px-4 py-2.5 rounded-xl bg-card border border-border hover:border-brand-orange transition-all shadow-sm active:scale-95 disabled:opacity-50"
             >
               <Plus size={14} strokeWidth={3} />
               Ajouter une ligne
@@ -121,16 +121,16 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
 
             <div className="w-full sm:w-64 space-y-2">
               <div className="flex justify-between text-xs items-center">
-                <span className="text-slate-500 font-medium">Total HT</span>
-                <span className="font-bold text-slate-700 tabular-nums">{totalHT.toLocaleString()} FCFA</span>
+                <span className="text-muted-foreground font-medium">Total HT</span>
+                <span className="font-bold text-foreground tabular-nums">{totalHT.toLocaleString()} FCFA</span>
               </div>
               <div className="flex justify-between text-xs items-center">
-                <span className="text-slate-500 font-medium">TVA (18%)</span>
-                <span className="text-slate-500 tabular-nums italic">calculé auto ({tva.toLocaleString()} FCFA)</span>
+                <span className="text-muted-foreground font-medium">TVA (18%)</span>
+                <span className="text-muted-foreground tabular-nums italic">calculé auto ({tva.toLocaleString()} FCFA)</span>
               </div>
-              <div className="flex justify-between text-sm items-center pt-2 border-t border-slate-200/60 mt-2">
-                <span className="font-black text-slate-900">Total TTC</span>
-                <span className="font-black text-slate-900 tabular-nums">{totalTTC.toLocaleString()} FCFA</span>
+              <div className="flex justify-between text-sm items-center pt-2 border-t border-border/60 mt-2">
+                <span className="font-black text-foreground">Total TTC</span>
+                <span className="font-black text-foreground tabular-nums">{totalTTC.toLocaleString()} FCFA</span>
               </div>
             </div>
           </div>

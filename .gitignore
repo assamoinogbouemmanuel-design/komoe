@@ -1,6 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ─── KOMOE — .gitignore ───────────────────────────────────────────────────────
 
-# dependencies
+# ── Frontend Next.js ──────────────────────────────────────────────────────────
 /node_modules
 /.pnp
 .pnp.*
@@ -9,33 +9,67 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
-# testing
-/coverage
-
-# next.js
 /.next/
 /out/
-
-# production
 /build
+/coverage
+*.tsbuildinfo
+next-env.d.ts
 
-# misc
-.DS_Store
+# ── Variables d'environnement (SECRETS — NE JAMAIS VERSIONNER) ───────────────
+.env
+.env.local
+.env.*.local
+# Garder uniquement les templates :
+# .env.example     ← OK à versionner
+# backend/.env.example ← OK à versionner
+
+# ── Backend Django ────────────────────────────────────────────────────────────
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+backend/*.pyc
+backend/db.sqlite3
+backend/.env
+backend/staticfiles/
+backend/media/
+backend/.pytest_cache/
+
+# ── Smart contracts Hardhat ───────────────────────────────────────────────────
+contracts/node_modules/
+contracts/cache/
+contracts/artifacts/
+contracts/typechain-types/
+contracts/.env
+
+# ── Fichiers binaires et temporaires ─────────────────────────────────────────
+*.exe
+*.dmg
+*.pkg
+*.deb
+*.msi
 *.pem
+*.key
 
-# debug
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# ── Outils OS ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# vercel
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Vercel ────────────────────────────────────────────────────────────────────
 .vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts

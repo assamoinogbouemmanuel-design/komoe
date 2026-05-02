@@ -1,7 +1,6 @@
-"use client";
-import ProfilCommune from "@/app/commune/profil/page";
+import { redirect } from "next/navigation";
 
-// On réutilise le profil commune pour le bailleur qui clique sur une commune
-export default function BailleurCommuneDetailPage() {
-  return <ProfilCommune />;
+// Le détail d'une commune pour un bailleur → page publique
+export default function BailleurCommuneDetail({ params }: { params: { id: string } }) {
+  redirect(`/public/communes`);
 }

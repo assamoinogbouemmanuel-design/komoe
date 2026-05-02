@@ -1,40 +1,60 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
+import { Loader2 } from "lucide-react"
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
+        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+        brand: "bg-brand-blue text-white hover:bg-brand-blue/90 shadow-sm",
+        accent: "bg-accent text-white hover:bg-accent/90 shadow-sm",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8 text-base",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   asChild?: boolean
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
-  size?: 'default' | 'sm' | 'lg' | 'icon'
+  loading?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, loading = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
-    
-    // Simplistic utility classes for variant and size
-    let variantClasses = "bg-brand-orange text-white hover:bg-[#b05020] shadow-sm"
-    if (variant === 'destructive') variantClasses = "bg-red-500 text-white hover:bg-red-600 shadow-sm"
-    if (variant === 'outline') variantClasses = "border border-gray-300 bg-transparent hover:bg-gray-100 text-gray-900"
-    if (variant === 'secondary') variantClasses = "bg-gray-100 text-gray-900 hover:bg-gray-200"
-    if (variant === 'ghost') variantClasses = "hover:bg-gray-100 hover:text-gray-900 text-gray-700"
-    if (variant === 'link') variantClasses = "text-brand-orange underline-offset-4 hover:underline"
-
-    let sizeClasses = "h-10 px-4 py-2"
-    if (size === 'sm') sizeClasses = "h-9 rounded-md px-3"
-    if (size === 'lg') sizeClasses = "h-11 rounded-md px-8"
-    if (size === 'icon') sizeClasses = "h-10 w-10"
-
-    const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-
     return (
       <Comp
-        className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className || ''}`}
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        disabled={props.disabled || loading}
         {...props}
-      />
+      >
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {children}
+      </Comp>
     )
   }
 )
 Button.displayName = "Button"
 
-export { Button }
+export { Button, buttonVariants }

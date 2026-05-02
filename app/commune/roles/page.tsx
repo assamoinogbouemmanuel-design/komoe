@@ -34,7 +34,7 @@ export default function RolesCommune() {
     {
       header: 'Actions',
       key: 'actions',
-      render: () => <Button variant="ghost" size="sm" className="text-slate-400 hover:text-red-500">Révoquer</Button>
+      render: () => <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-red-500">Révoquer</Button>
     }
   ];
 
@@ -42,8 +42,8 @@ export default function RolesCommune() {
     <div className="animate-in fade-in duration-500">
       <div className="mb-8 flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Rôles & Accès (Multisig)</h2>
-          <p className="text-slate-500 mt-1 font-medium text-sm">Gestion des signataires autorisés pour les transactions budgétaires.</p>
+          <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Rôles & Accès (Multisig)</h2>
+          <p className="text-muted-foreground mt-1 font-medium text-sm">Gestion des signataires autorisés pour les transactions budgétaires.</p>
         </div>
         <Button className="bg-brand-orange hover:bg-[#b05020] text-white" onClick={() => setIsDrawerOpen(true)}>
           <Key className="w-4 h-4 mr-2" />
@@ -87,7 +87,7 @@ export default function RolesCommune() {
             </Select>
           </FormField>
 
-          <div className="pt-6 border-t border-slate-100 flex justify-end space-x-3">
+          <div className="pt-6 border-t border-border flex justify-end space-x-3">
             <Button variant="ghost" type="button" onClick={() => setIsDrawerOpen(false)}>Annuler</Button>
             <Button type="submit" className="bg-brand-orange hover:bg-[#b05020] text-white">Ajouter au contrat</Button>
           </div>

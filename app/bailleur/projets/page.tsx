@@ -13,14 +13,14 @@ export default function ProjetsBailleur() {
   ];
 
   const columns: ColumnConfig<any>[] = [
-    { header: 'Projet', key: 'nom', render: (val) => <span className="font-bold text-slate-900">{val}</span> },
+    { header: 'Projet', key: 'nom', render: (val) => <span className="font-bold text-foreground">{val}</span> },
     { header: 'Commune', key: 'commune' },
     { header: 'Budget Alloué', key: 'budget', render: (val) => <span className="font-mono text-brand-orange">{val.toLocaleString()} FCFA</span> },
     { header: 'Statut', key: 'statut', render: (val) => <Badge variant={val === 'Achevé' ? 'success' : val === 'En cours' ? 'default' : 'secondary'}>{val}</Badge> },
     { header: 'Exécution', key: 'taux', render: (val) => (
       <div className="flex items-center gap-2">
-        <div className="w-16 h-2 bg-slate-100 rounded-full"><div className="h-full bg-brand-blue rounded-full" style={{ width: `${val}%` }}></div></div>
-        <span className="text-xs font-bold text-slate-500">{val}%</span>
+        <div className="w-16 h-2 bg-muted/50 rounded-full"><div className="h-full bg-brand-blue rounded-full" style={{ width: `${val}%` }}></div></div>
+        <span className="text-xs font-bold text-muted-foreground">{val}%</span>
       </div>
     )}
   ];
@@ -28,8 +28,8 @@ export default function ProjetsBailleur() {
   return (
     <div className="animate-in fade-in duration-500">
       <div className="mb-8">
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Projets Financés</h2>
-        <p className="text-slate-500 mt-1 font-medium text-sm">Suivi des infrastructures et projets parrainés.</p>
+        <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Projets Financés</h2>
+        <p className="text-muted-foreground mt-1 font-medium text-sm">Suivi des infrastructures et projets parrainés.</p>
       </div>
       <DataTable title="Liste des Projets" columns={columns} data={projets} />
     </div>

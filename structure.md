@@ -1,895 +1,480 @@
-# KOMOE — Transparence Budgétaire sur Blockchain
+# KOMOE — Architecture & Structure du Projet
 
-> **MIABE Hackathon 2026 · Projet CI-01 · D08**
-> _La Blockchain au service de la transparence budgétaire_
-> _Comment KOMOE rend chaque franc communal immuable, public et vérifiable — en temps réel._
-
----
-
-## Table des matières
-
-1. [Vision du projet](#1-vision-du-projet)
-2. [Problème résolu](#2-problème-résolu)
-3. [Stack technique](#3-stack-technique)
-4. [Architecture globale](#4-architecture-globale)
-5. [Arborescence complète du projet](#5-arborescence-complète-du-projet)
-6. [Description détaillée de chaque fichier et dossier](#6-description-détaillée-de-chaque-fichier-et-dossier)
-7. [Smart Contract BudgetLedger.sol](#7-smart-contract-budgetledgersol)
-8. [Configuration des environnements](#8-configuration-des-environnements)
-9. [Données mockées (phase 1)](#9-données-mockées-phase-1)
-10. [Flux complet d'une transaction](#10-flux-complet-dune-transaction)
-11. [Roadmap des phases](#11-roadmap-des-phases)
-12. [Installation et lancement](#12-installation-et-lancement)
-13. [Conventions de code](#13-conventions-de-code)
-14. [Contributeurs](#14-contributeurs)
+> Document de référence technique pour les développeurs et agents IA.  
+> Dernière mise à jour : 02/05/2026
 
 ---
 
-## 1. Vision du projet
+## 🤖 Point de départ — Pour une IA ou un développeur qui reprend le projet
 
-KOMOE est une **plateforme d'administration budgétaire communale** qui enregistre chaque dépense et recette sur la blockchain Ethereum. Elle vise à éliminer l'opacité financière dans les 201 communes ivoiriennes en rendant chaque transaction :
-
-- **Immuable** — cryptographiquement gravée, impossible à modifier ou effacer
-- **Publique** — vérifiable par tout citoyen depuis son smartphone, sans inscription
-- **Temps réel** — visible en moins de 30 secondes après la saisie
-- **Vérifiable** — chaque enregistrement a un hash Keccak-256 vérifiable sur Etherscan
-
-**Cible utilisateurs :**
-
-| Profil | Interface | Rôle |
-|--------|-----------|------|
-| Agent communal | Web (Next.js) | Saisit les transactions budgétaires |
-| Responsable communal | Web (Next.js) | Signe via MetaMask, valide les dépenses |
-| Bailleur / Auditeur | Web (Next.js) | Consulte les rapports, vérifie les transactions |
-| Citoyen (Aminata) | Mobile (Flutter — Phase 3) | Consulte les dépenses de sa commune |
-
----
-
-## 2. Problème résolu
-
-| Problème (Excel / PDF) | Solution KOMOE (Blockchain) |
-|------------------------|------------------------------|
-| Modifiable à volonté par n'importe quel agent | Immuable cryptographiquement (Keccak-256) |
-| Aucune preuve d'origine ni d'horodatage | Signature numérique MetaMask + timestamp Unix on-chain |
-| Supprimable du serveur communal | Données répliquées sur des milliers de nœuds mondiaux |
-| Mise à jour avec 18–24 mois de délai | Visibilité publique en < 30 secondes |
-| Moins de 3 % des Ivoiriens y ont accès | Accessible sans intermédiaire, depuis tout smartphone |
-
----
-
-## 3. Stack technique
-
-### Frontend (Phase 1 — en cours)
-| Technologie | Version | Rôle |
-|-------------|---------|------|
-| Next.js | 14 (App Router) | Framework React SSR/SSG |
-| TypeScript | 5.x | Typage statique |
-| Tailwind CSS | 3.x | Styling utilitaire |
-| ethers.js | v6 | Interaction blockchain Ethereum |
-| MetaMask | Extension navigateur | Wallet, signature des transactions |
-| Recharts | 2.x | Graphiques et visualisations |
-| Lucide React | latest | Icônes |
-| @tanstack/react-query | 5.x | Gestion de l'état serveur / cache |
-
-### Blockchain
-| Technologie | Détail |
-|-------------|--------|
-| Réseau Phase 1–2 | Ethereum Sepolia Testnet (Chain ID : 11155111) |
-| Réseau Phase 3 | Ethereum Mainnet + Polygon L2 |
-| Langage smart contract | Solidity ^0.8.20 |
-| Framework déploiement | Hardhat |
-| Indexation events | The Graph Protocol (GraphQL) |
-
-### Backend (Phase 2 — à venir)
-| Technologie | Rôle |
-|-------------|------|
-| Django 5.x | API REST principale |
-| Django REST Framework | Sérialisation, endpoints |
-| PostgreSQL | Base de données relationnelle |
-| Redis | Cache, fallback réseau |
-| JWT + MetaMask | Authentification zero-knowledge |
-
-### Phase 1 — Données mockées
-En attendant le backend Django, toutes les données sont **simulées localement** via des fichiers JSON et des hooks React dédiés.
-
----
-
-## 4. Architecture globale
+### Où on en est exactement
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    COUCHE 4 — FRONTEND                      │
-│         Next.js 14 · TypeScript · Tailwind · ethers.js      │
-│   Dashboard Admin · Pages Communes · Rapports · Wallet UI   │
-└────────────────────────┬────────────────────────────────────┘
-                         │ ethers.js v6
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  COUCHE 3 — BACKEND API                     │
-│         Django REST Framework · JWT · Redis Cache           │
-│   /api/communes · /api/transactions · /api/stats            │
-│          [Phase 1 : données mockées JSON locaux]            │
-└────────────────────────┬────────────────────────────────────┘
-                         │ Web3 calls
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│               COUCHE 2 — INDEXATION                         │
-│         The Graph Protocol · Subgraph budget-komoe-ci       │
-│   GraphQL : getEntriesByCommune · getTotalsByPeriod         │
-└────────────────────────┬────────────────────────────────────┘
-                         │ Events on-chain
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│             COUCHE 1 — BLOCKCHAIN ETHEREUM                  │
-│       Smart Contract BudgetLedger.sol (Solidity ^0.8.20)    │
-│   Sepolia Testnet (Phase 1–2) → Mainnet / Polygon (Phase 3) │
-│   Events : BudgetEntryRecorded · OwnershipTransferred       │
-└─────────────────────────────────────────────────────────────┘
+✅ Phase 1 TERMINÉE — Refactoring des rôles
+   - Modèle User avec rôle + champ profession
+   - Sidebar conditionnelle (onlyFor: string[])
+   - Layouts dynamiques (rôle lu depuis JWT)
+   - JOURNALISTE fusionné dans CITOYEN
+
+✅ Phase 2 TERMINÉE — Connexion API
+   - lib/api.ts : client HTTP avec JWT + refresh auto
+   - Hooks useCommunes et useTransactions branchés sur Django
+   - Pages branchées sur l'API réelle (USE_MOCK_DATA=false)
+   - Filtres ?statut= et ?commune= fonctionnels
+
+⏳ Phase 3 — Comptes externes (Alchemy, MetaMask, Pinata)  → Manuel, pas encore fait
+⏳ Phase 4 — Valider les clés en local (shell Python)       → Manuel, après Phase 3
+⏳ Phase 5 — Déployer BudgetLedger.sol sur Polygon Amoy     → Manuel via Remix
+⏳ Phase 6 — Tester le flux blockchain bout en bout          → Manuel
+⏳ Phase 7 — Intégration Ethers.js frontend (lecture Polygon)→ IA code
+⏳ Phase 8 — Score transparence + signalements + budget prévu→ IA code
+⏳ Phase 9 — Préparation démo hackathon                      → Équipe
+🛑 Phase 10— Déploiement production — ACCORD ÉQUIPE REQUIS  → Après P9
+```
+
+### Règle absolue sur le déploiement
+
+> 🛑 **Aucun déploiement (Phase 10) sans accord de Brou, Kablan et tous les membres.**  
+> **L'objectif immédiat : tout faire marcher en local (Phases 3 → 9).**  
+> Si quelqu'un veut déployer, calme-le et dis-lui d'en parler au groupe d'abord.
+
+### Ce que doit faire la prochaine personne qui reprend
+
+1. **Setup local** : PostgreSQL + `python manage.py migrate` + `python manage.py seed_data` + `npm run dev`
+2. **Vérifier Phase 2** : tester flux Agent → Maire → DGDDL → Citoyen sans blockchain
+3. **Démarrer Phase 3** : créer comptes Alchemy, MetaMask (wallet dev), Pinata
+4. **Phase 4** : valider les clés via shell Python (`is_configured()` doit retourner True)
+5. **Phase 5** : déployer le contrat sur Amoy via Remix IDE
+6. **Phases 6→9** : voir `PLAN.md` pour le détail complet
+7. **Phase 10** : seulement après accord équipe complet
+
+---
+
+## Vue d'ensemble
+
+KOMOE (BudgetOuvert) est une application **fullstack** composée de 3 parties indépendantes :
+
+| Partie | Dossier | Port local | Rôle |
+|---|---|---|---|
+| **Frontend** | `/` (racine) | `3000` | Next.js — interface utilisateur |
+| **Backend API** | `backend/` | `8000` | Django REST — logique métier + blockchain |
+| **Smart Contract** | `contracts/` | — | Solidity/Hardhat — registre blockchain |
+
+---
+
+## Base de données — PostgreSQL (OBLIGATOIRE)
+
+> ⚠️ **PostgreSQL est la seule base de données supportée en test et production.**  
+> SQLite est toléré pour un dev ultra-rapide mais **ne doit pas être utilisé pour les démos hackathon**.
+
+### Schéma des tables
+
+```
+┌─────────────────────────────────────────────┐
+│                  communes                    │
+│  code (PK, unique)                          │
+│  nom, region, population                    │
+│  superficie_km2, budget_annuel_fcfa         │
+│  maire_nom, is_active                       │
+│  created_at, updated_at                     │
+└─────────────────┬───────────────────────────┘
+                  │ 1─────N
+         ┌────────▼────────────────────────────┐
+         │              users                  │
+         │  id (UUID PK)                       │
+         │  email (unique), nom, prenom        │
+         │  role (CITOYEN|MAIRE|AGENT_FINANCIER│
+         │        |DGDDL|COUR_COMPTES|BAILLEUR)│
+         │  profession (CITOYEN|JOURNALISTE    │
+         │              |ONG|CHERCHEUR|AUTRE)  │
+         │  commune_id → communes.code (FK)    │
+         │  wallet_address (Polygon)           │
+         │  telephone, media_organisation      │
+         │  journaliste_verifie, email_verifie │
+         │  avatar, reputation_score           │
+         │  is_active, is_staff                │
+         │  date_joined, updated_at            │
+         └────────┬────────────────────────────┘
+                  │ 1─────N
+         ┌────────▼────────────────────────────┐
+         │           transactions              │
+         │  id (UUID PK)                       │
+         │  commune_id → communes (FK)         │
+         │  type (DEPENSE | RECETTE)           │
+         │  statut (BROUILLON|SOUMIS           │
+         │          |VALIDE|REJETE)            │
+         │  montant_fcfa (BigInt)              │
+         │  categorie (INFRASTRUCTURE|SANTE   │
+         │    |EDUCATION|EAU_ASSAINISSEMENT   │
+         │    |SECURITE|ADMINISTRATION        │
+         │    |AGRICULTURE|CULTURE_SPORT|AUTRE)│
+         │  description, periode (YYYY-MM)     │
+         │  ipfs_hash, ipfs_url               │
+         │  blockchain_tx_hash_soumission      │
+         │  blockchain_tx_hash_validation      │
+         │  blockchain_synced_at              │
+         │  soumis_par_id → users (FK)        │
+         │  valide_par_id → users (FK)        │
+         │  created_at, updated_at             │
+         │  validated_at                       │
+         └─────────────────────────────────────┘
+```
+
+### Noms de tables en base
+
+| Modèle Django | Table PostgreSQL |
+|---|---|
+| `Commune` | `communes` |
+| `User` | `users` |
+| `Transaction` | `transactions` |
+
+### Installer PostgreSQL en local (Windows)
+
+```powershell
+# 1. Télécharger PostgreSQL sur https://www.postgresql.org/download/windows/
+# 2. Installer avec pgAdmin inclus
+# 3. Créer la base et l'utilisateur :
+
+psql -U postgres
+CREATE DATABASE komoe_dev;
+CREATE USER komoe_user WITH PASSWORD 'VotreMotDePasse';
+GRANT ALL PRIVILEGES ON DATABASE komoe_dev TO komoe_user;
+\q
+
+# 4. Mettre à jour backend/.env :
+# DATABASE_URL=postgresql://komoe_user:VotreMotDePasse@localhost:5432/komoe_dev
 ```
 
 ---
 
-## 5. Arborescence complète du projet
+## Arborescence complète annotée
 
 ```
-komoe-dashboard/
+komoe/
 │
-├── .env.local                        # Variables d'environnement (non versionné)
-├── .env.example                      # Template des variables d'environnement
-├── .gitignore                        # Fichiers exclus de Git
-├── .eslintrc.json                    # Configuration ESLint
-├── next.config.ts                    # Configuration Next.js
-├── tailwind.config.ts                # Configuration Tailwind CSS
-├── tsconfig.json                     # Configuration TypeScript
-├── postcss.config.js                 # Configuration PostCSS
-├── package.json                      # Dépendances et scripts npm
-├── package-lock.json                 # Lockfile npm
-├── README.md                         # Ce fichier
+├── README.md              ← Documentation principale (setup, rôles, flux)
+├── STRUCTURE.md           ← Ce fichier — architecture technique complète
+├── PLAN.md                ← Plan hackathon phases 1→5 (avancement)
 │
-├── public/                           # Assets statiques servis publiquement
-│   ├── logo-komoe.svg                # Logo KOMOE
-│   ├── logo-komoe-white.svg          # Logo KOMOE version blanche (sidebar)
-│   ├── favicon.ico                   # Favicon
-│   └── images/
-│       └── map-cote-divoire.png      # Carte Côte d'Ivoire (Dashboard)
+├── .gitignore             ← Protège : .env, venv, __pycache__, *.exe, db.sqlite3
+├── .env.example           ← Template variables frontend (à copier en .env.local)
+├── .env.local             ← ⛔ Non versionné — vos vraies clés frontend
 │
-├── src/
-│   │
-│   ├── app/                          # App Router Next.js 16²²²²²²²²²²²²²²²²²²
-│   │   ├── layout.tsx                # Layout racine (font, metadata, providers)
-│   │   ├── globals.css               # Styles globaux + variables CSS
-│   │   ├── page.tsx                  # Page d'accueil → redirect /dashboard
-│   │   │
-│   │   ├── (auth)/                   # Groupe de routes : authentification
-│   │   │   ├── login/
-│   │   │   │   └── page.tsx          # Page de connexion MetaMask
-│   │   │   └── layout.tsx            # Layout auth (centré, sans sidebar)
-│   │   │
-│   │   ├── (dashboard)/              # Groupe de routes : espace admin connecté
-│   │   │   ├── layout.tsx            # Layout dashboard (sidebar + header)
-│   │   │   │
-│   │   │   ├── dashboard/
-│   │   │   │   └── page.tsx          # Vue d'ensemble : KPIs, carte, graphiques
-│   │   │   │
-│   │   │   ├── transactions/
-│   │   │   │   ├── page.tsx          # Liste de toutes les transactions
-│   │   │   │   └── [id]/
-│   │   │   │       └── page.tsx      # Détail d'une transaction (hash, bloc, etc.)
-│   │   │   │
-│   │   │   ├── communes/
-│   │   │   │   ├── page.tsx          # Liste des 201 communes ivoiriennes
-│   │   │   │   └── [slug]/
-│   │   │   │       └── page.tsx      # Profil d'une commune (budget, dépenses)
-│   │   │   │
-│   │   │   ├── budget/
-│   │   │   │   ├── page.tsx          # Vue budgétaire par catégorie / période
-│   │   │   │   └── categories/
-│   │   │   │       └── page.tsx      # Gestion des catégories budgétaires (ODD)
-│   │   │   │
-│   │   │   ├── rapports/
-│   │   │   │   └── page.tsx          # Rapports exportables (PDF, CSV)
-│   │   │   │
-│   │   │   ├── bailleurs/
-│   │   │   │   ├── page.tsx          # Liste des bailleurs de fonds
-│   │   │   │   └── [id]/
-│   │   │   │       └── page.tsx      # Tableau de bord bailleur
-│   │   │   │
-│   │   │   ├── wallet/
-│   │   │   │   └── page.tsx          # Gestion wallet, solde, historique TX
-│   │   │   │
-│   │   │   └── roles/
-│   │   │       └── page.tsx          # Paramètres compte et gestion des roles et utilisateurs
-│   │   │   └── profil/
-│   │   │       └── page.tsx          # Paramètres compte et commune
-│   │   │
-│   │   └── api/                      # API Routes Next.js (mock backend Phase 1)
-│   │       ├── transactions/
-│   │       │   ├── route.ts          # GET /api/transactions · POST /api/transactions
-│   │       │   └── [id]/
-│   │       │       └── route.ts      # GET /api/transactions/:id
-│   │       ├── communes/
-│   │       │   ├── route.ts          # GET /api/communes
-│   │       │   └── [slug]/
-│   │       │       └── route.ts      # GET /api/communes/:slug
-│   │       ├── stats/
-│   │       │   └── route.ts          # GET /api/stats (KPIs globaux)
-│   │       └── bailleurs/
-│   │           └── route.ts          # GET /api/bailleurs
-│   │
-│   ├── components/                   # Composants React réutilisables
-│   │   │
-│   │   ├── ui/                       # Composants UI de base (design system)
-│   │   │   ├── Button.tsx            # Bouton (variantes : primary, ghost, danger)
-│   │   │   ├── Badge.tsx             # Badge de statut (confirmé, en attente, etc.)
-│   │   │   ├── StatsCard.tsx         # Carte conteneur avec les statistiques
- ├── DataTable.tsx         # Table de données réutilisable
-│   │   │   ├── ModalCenter.tsx             # Modale (dialogue de confirmation)
-│   │   │   ├── ReusableForm.tsx             # Modale (incluant tous les champs input comme radio n upload-iage descruitpion texterae)
-│   │   ├─  ├── form/
-│   │   │   ├── Input.tsx             # Champ de saisie stylisé
-│   │   │   ├── Select.tsx            # Sélecteur déroulant
-│   │   │   ├── Toast.tsx           # Notifications push
-│   │   │   ├── DetailsCard.tsx       # Statistiques détaillées
-│   │   │   ├── Spinner.tsx           # Indicateur de chargement
-│   │   │   ├── Tooltip.tsx           # Info-bulle
-│   │   │   ├── Alert.tsx             # Alertes (success, error, warning, info)
-│   │   │   └── Skeleton.tsx          # Squelette de chargement (placeholder)
-│   │   │
-│   │   ├── layout/                   # Composants de structure de page
-│   │   │   ├── Sidebar.tsx           # Barre de navigation latérale
-│   │   │   ├── Header.tsx            # En-tête global (wallet, notifications)
-│   │   │   ├── Footer.tsx            # Pied de page
-│   │   │   └── PageHeader.tsx        # En-tête de section (titre + breadcrumb)
-│   │   │
-│   │   ├── wallet/                   # Composants liés au wallet Web3
-│   │   │   ├── WalletConnect.tsx     # Bouton connexion / déconnexion MetaMask
-│   │   │   ├── WalletInfo.tsx        # Affichage adresse, solde SepoliaETH
-│   │   │   ├── WalletBadge.tsx       # Badge compact adresse tronquée
-│   │   │   └── NetworkGuard.tsx      # Vérificateur de réseau (force Sepolia)
-│   │   │
-│   │   ├── blockchain/               # Composants visualisation blockchain
-│   │   │   ├── TransactionHash.tsx   # Affichage hash TX cliquable (Etherscan)
-│   │   │   ├── BlockNumber.tsx       # Numéro de bloc en temps réel
-│   │   │   ├── GasPrice.tsx          # Prix du gas en temps réel
-│   │   │   ├── NetworkStatus.tsx     # Statut réseau Sepolia (connecté/déconnecté)
-│   │   │   └── ConfirmationBadge.tsx # Badge confirmations (0/12 → confirmé)
-│   │   │
-│   │   ├── transactions/             # Composants gestion des transactions
-│   │   │   ├── TransactionTable.tsx  # Tableau paginé des transactions
-│   │   │   ├── TransactionCard.tsx   # Carte résumé d'une transaction
-│   │   │   ├── TransactionForm.tsx   # Formulaire saisie nouvelle transaction
-│   │   │   ├── TransactionDetail.tsx # Vue détaillée (hash, bloc, signature)
-│   │   │   ├── TransactionFilters.tsx # Filtres (date, catégorie, commune, montant)
-│   │   │   └── TransactionExport.tsx # Boutons export CSV / PDF
-│   │   │
-│   │   ├── dashboard/                # Composants spécifiques au dashboard
-│   │   │   ├── KpiCard.tsx           # Carte KPI (total, variation, icône)
-│   │   │   ├── BudgetChart.tsx       # Graphique dépenses par catégorie (Recharts)
-│   │   │   ├── TimelineChart.tsx     # Évolution du budget dans le temps
-│   │   │   ├── CommuneMap.tsx        # Carte Côte d'Ivoire géolocalisée
-│   │   │   ├── RecentTransactions.tsx # Widget dernières transactions
-│   │   │   └── AlertsWidget.tsx      # Alertes budgétaires en temps réel
-│   │   │
-│   │   ├── communes/                 # Composants gestion des communes
-│   │   │   ├── CommuneList.tsx       # Liste des 201 communes avec filtres
-│   │   │   ├── CommuneCard.tsx       # Carte résumé d'une commune
-│   │   │   └── CommuneProfile.tsx    # Profil complet d'une commune
-│   │   │
-│   │   └── rapports/                 # Composants rapports et exports
-│   │       ├── ReportGenerator.tsx   # Générateur de rapports paramétrable
-│   │       └── ExportButton.tsx      # Bouton export (PDF / CSV / Excel)
-│   │
-│   ├── hooks/                        # Hooks React personnalisés
-│   │   ├── useWallet.ts              # État wallet MetaMask (adresse, réseau, solde)
-│   │   ├── useBalance.ts             # Solde SepoliaETH en temps réel
-│   │   ├── useContract.ts            # Instance du smart contract BudgetLedger
-│   │   ├── useTransactions.ts        # Fetch + cache des transactions (mock → API)
-│   │   ├── useCommunes.ts            # Fetch des données communes
-│   │   ├── useStats.ts               # Fetch des KPIs globaux
-│   │   ├── useBlockchain.ts          # Bloc courant, gas price, events listener
-│   │   └── useNetworkGuard.ts        # Vérification et switch réseau Sepolia
-│   │
-│   ├── lib/                          # Utilitaires et configuration
-│   │   ├── ethers.ts                 # Config ethers.js (providers, formatters)
-│   │   ├── contract.ts               # ABI + adresse BudgetLedger, factory
-│   │   ├── api.ts                    # Fonctions fetch vers les API Routes
-│   │   ├── formatters.ts             # Formatage montants FCFA, dates, adresses
-│   │   ├── validators.ts             # Validation formulaires (Zod schemas)
-│   │   ├── constants.ts              # Constantes globales (Chain ID, adresses, etc.)
-│   │   └── utils.ts                  # Fonctions utilitaires générales
-│   │
-│   ├── types/                        # Types TypeScript globaux
-│   │   ├── wallet.ts                 # WalletState, NetworkInfo
-│   │   ├── transaction.ts            # BudgetTransaction, TransactionStatus
-│   │   ├── commune.ts                # Commune, CommuneStats
-│   │   ├── budget.ts                 # BudgetCategory, BudgetEntry, ODD
-│   │   ├── bailleur.ts               # Bailleur, BailleurReport
-│   │   └── global.d.ts               # Déclaration window.ethereum
-│   │
-│   ├── mock/                         # Données simulées (Phase 1 — sans backend)
-│   │   ├── transactions.json         # 50+ transactions budgétaires fictives
-│   │   ├── communes.json             # 201 communes ivoiriennes avec métadonnées
-│   │   ├── categories.json           # Catégories ODD (Infrastructure, Santé, etc.)
-│   │   ├── bailleurs.json            # Bailleurs de fonds (BM, AFD, BAD, etc.)
-│   │   └── stats.json                # KPIs pré-calculés pour le dashboard
-│   │
-│   └── styles/                       # Styles globaux additionnels
-│       └── components.css            # Classes CSS custom non couvertes par Tailwind
+├── package.json           ← Dépendances Next.js (next 16, react 19, ethers v6)
+├── next.config.ts         ← Config Next.js (App Router)
+├── tsconfig.json          ← Config TypeScript strict
+├── postcss.config.mjs     ← Tailwind CSS v4
+├── proxy.ts               ← ⭐ Middleware JWT : lit cookie → redirect par rôle
 │
-└── contracts/                        # Smart contracts Solidity (Hardhat)
-    ├── BudgetLedger.sol              # Contrat principal KOMOE
-    ├── artifacts/                    # ABI compilés (généré par Hardhat, non versionné)
-    ├── scripts/
-    │   ├── deploy.ts                 # Script déploiement Sepolia
-    │   └── verify.ts                 # Script vérification Etherscan
-    ├── test/
-    │   └── BudgetLedger.test.ts      # Tests unitaires Hardhat / Chai
-    ├── hardhat.config.ts             # Configuration Hardhat (réseaux, accounts)
-    └── package.json                  # Dépendances Hardhat séparées
+├── app/                   ← Pages Next.js (App Router)
+│   ├── layout.tsx         ← Layout racine HTML
+│   ├── page.tsx           ← Redirect automatique → /login
+│   ├── globals.css        ← Styles globaux + variables Tailwind
+│   ├── favicon.ico
+│   │
+│   ├── login/             ← Authentification (email + mot de passe)
+│   ├── register/          ← Inscription (citoyens uniquement en auto)
+│   │
+│   ├── public/            ← Interface CITOYEN / JOURNALISTE / BAILLEUR
+│   │   ├── layout.tsx     ← Layout public (sidebar conditionnelle)
+│   │   ├── dashboard/     ← Vue nationale agrégée
+│   │   ├── budget/        ← Budget commune temps réel
+│   │   ├── transactions/  ← Transactions publiques validées
+│   │   ├── signalement/   ← Signaler une anomalie citoyenne
+│   │   ├── verifier/      ← Vérifier un hash blockchain
+│   │   ├── comparatif/    ← Comparatif entre communes
+│   │   ├── export/        ← Export CSV / Open Data API
+│   │   ├── scores/        ← Scores de transparence
+│   │   ├── blockchain/    ← Réseau Polygon en temps réel
+│   │   └── rapports/      ← Rapports publics
+│   │
+│   ├── commune/           ← Interface MAIRE / AGENT_FINANCIER
+│   │   ├── layout.tsx     ← Layout commune (sidebar conditionnelle par rôle)
+│   │   ├── dashboard/     ← Tableau de bord communal
+│   │   ├── budget/        ← Budget de la commune connectée
+│   │   ├── transactions/
+│   │   │   ├── page.tsx   ← Liste des transactions
+│   │   │   └── nouvelle/  ← ⭐ AGENT_FINANCIER seulement — saisie transaction
+│   │   ├── validation/    ← ⭐ MAIRE seulement — valider → blockchain
+│   │   ├── en-attente/    ← Transactions en statut SOUMIS
+│   │   ├── signalements/  ← Signalements citoyens reçus
+│   │   ├── citoyens/      ← MAIRE seulement — gestion citoyens
+│   │   └── profil/        ← Profil de la mairie
+│   │
+│   ├── controle/          ← Interface DGDDL / COUR_COMPTES
+│   │   ├── layout.tsx     ← Layout contrôle (sidebar conditionnelle)
+│   │   ├── dashboard/     ← Vue nationale 201 communes
+│   │   ├── communes/      ← Liste et détail des communes
+│   │   ├── classement/    ← Ranking transparence
+│   │   ├── alertes/       ← Transactions SOUMIS non encore validées
+│   │   ├── rapports/      ← Rapports d'audit
+│   │   ├── preuves/       ← Preuves blockchain (hash TX)
+│   │   ├── blockchain/    ← Statistiques Polygon
+│   │   ├── export/        ← Export données nationales
+│   │   └── comptes/       ← ⭐ DGDDL seulement — gestion comptes mairies
+│   │
+│   ├── bailleur/          ← Interface Bailleur international
+│   └── finance/           ← Finance interne
+│
+├── components/
+│   ├── layout/            ← AppLayout, Sidebar, Header
+│   │   └── Sidebar.tsx    ← ⭐ Filtre les items avec onlyFor: string[]
+│   └── ui/                ← Composants génériques (boutons, cartes, etc.)
+│
+├── views/                 ← Vues lourdes (logique séparée des pages)
+│   ├── DashboardView.tsx  ← Dashboard avec données communes + transactions
+│   └── TransactionsView.tsx ← Liste/détail transactions avec filtres
+│
+├── lib/                   ← Logique partagée côté client
+│   ├── api.ts             ← ⭐ Client HTTP avec gestion JWT + refresh auto
+│   ├── auth-context.tsx   ← Contexte React (Provider + useAuth hook)
+│   ├── constants.ts       ← Constantes globales (ROLES, STATUTS, CATEGORIES)
+│   ├── abi/
+│   │   └── BudgetLedger.json ← ABI du smart contract (généré par Hardhat)
+│   └── hooks/
+│       ├── useCommunes.ts    ← Hook : GET /api/communes/ avec filtres
+│       └── useTransactions.ts ← Hook : GET /api/transactions/ avec filtres
+│
+├── mock/                  ← Données JSON factices (désactivées si USE_MOCK_DATA=false)
+│   ├── communes.json
+│   ├── transactions.json
+│   ├── bailleurs.json
+│   └── institutions.json
+│
+├── types/                 ← Types TypeScript globaux
+│
+├── public/                ← Assets statiques servis par Next.js
+│
+│
+├── backend/               ━━━ API DJANGO REST FRAMEWORK ━━━
+│   ├── manage.py
+│   ├── requirements.txt   ← Dépendances Python (Django 5.1, web3, psycopg2...)
+│   ├── .env.example       ← Template variables backend (PostgreSQL obligatoire)
+│   ├── .env               ← ⛔ Non versionné — vos vraies clés
+│   ├── db.sqlite3         ← ⛔ Non versionné — dev temporaire uniquement
+│   ├── conftest.py        ← Fixtures pytest globales
+│   ├── pytest.ini         ← Config pytest (DJANGO_SETTINGS_MODULE)
+│   │
+│   ├── config/            ← Configuration Django centrale
+│   │   ├── settings.py    ← ⭐ Config principale (DB, JWT, CORS, Blockchain)
+│   │   ├── urls.py        ← Routes globales (/api/auth/, /api/communes/, /api/transactions/)
+│   │   └── wsgi.py        ← WSGI pour production
+│   │
+│   └── apps/              ← Applications Django (Clean Architecture)
+│       │
+│       ├── users/         ← Authentification & gestion des utilisateurs
+│       │   ├── models.py      ← User (UUID PK), Role, Profession
+│       │   ├── serializers.py ← LoginSerializer, RegisterSerializer, UserProfileSerializer
+│       │   ├── views.py       ← LoginView, RegisterView, MeView
+│       │   ├── permissions.py ← IsAgentFinancier, IsMaire, IsDGDDL, IsCourComptes
+│       │   ├── urls.py        ← /api/auth/login/ /register/ /me/ /refresh/
+│       │   └── tests.py       ← Tests unitaires auth
+│       │
+│       ├── communes/      ← CRUD communes + seed data
+│       │   ├── models.py      ← Commune (code unique, region, budget)
+│       │   ├── serializers.py ← CommuneSerializer (avec score_transparence calculé)
+│       │   ├── views.py       ← CommuneListView, CommuneDetailView
+│       │   ├── urls.py        ← /api/communes/ /api/communes/<id>/
+│       │   ├── tests.py       ← Tests API communes
+│       │   └── management/commands/
+│       │       └── seed_data.py ← ⭐ Commande : crée 5 communes + 7 comptes de test
+│       │
+│       ├── transactions/  ← Soumission, validation, filtrage
+│       │   ├── models.py      ← Transaction (UUID PK, statut, blockchain hashes)
+│       │   ├── serializers.py ← TransactionSerializer (avec commune_detail, acteurs)
+│       │   ├── views.py       ← SoumettreView, ValiderView, ListeView, DetailView
+│       │   ├── urls.py        ← /api/transactions/ /soumettre/ /<id>/valider/
+│       │   └── tests.py       ← Tests soumission + validation
+│       │
+│       └── blockchain/    ← Service Web3.py
+│           ├── service.py     ← ⭐ BlockchainService : soumettre/valider/recette
+│           └── apps.py
+│
+│
+├── contracts/             ━━━ SMART CONTRACT HARDHAT ━━━
+│   ├── contracts/
+│   │   └── BudgetLedger.sol   ← ⭐ Contrat principal Solidity
+│   ├── scripts/
+│   │   └── deploy.ts          ← Script déploiement Polygon Amoy
+│   ├── test/                  ← Tests Hardhat
+│   ├── hardhat.config.ts      ← Config réseau (Amoy Chain ID 80002)
+│   ├── artifacts/             ← ⛔ Généré par `npx hardhat compile`
+│   ├── typechain-types/       ← ⛔ Généré automatiquement
+│   └── package.json           ← Dépendances : hardhat, ethers, OpenZeppelin
+│
+│
+└── ContextDocs/           ━━━ DOCUMENTATION MÉTIER ━━━
+    ├── BudgetOuvert_Contexte_Complet.md   ← Contexte hackathon, acteurs, outils
+    ├── BudgetOuvert_Livrable1_KOMOE_Final.docx
+    ├── BudgetOuvert_Phase1_Guide_Complet.docx
+    └── PROJET_N°1_CÔTE D'IVOIRE.pdf
 ```
 
 ---
 
-## 6. Description détaillée de chaque fichier et dossier
+## Endpoints API Django
 
-### Racine du projet
-
-| Fichier | Description |
-|---------|-------------|
-| `.env.local` | Variables secrètes non versionnées : clés API Alchemy, adresse du contrat, Chain ID |
-| `.env.example` | Template à copier pour configurer l'environnement. Documenter chaque variable |
-| `next.config.ts` | Config Next.js : headers CORS, rewrites vers l'API Django (Phase 2), images externes |
-| `tailwind.config.ts` | Extension Tailwind : couleurs KOMOE (vert #1B5E20, or #F9A825), polices, breakpoints |
-| `tsconfig.json` | Alias `@/*` → `./src/*`, strict mode activé |
-
----
-
-### `src/app/` — App Router Next.js
-
-#### `layout.tsx` (racine)
-Layout racine de l'application. Responsabilités :
-- Chargement des polices Google Fonts (ex : Inter + Space Grotesk)
-- Balises `<meta>` et SEO globaux
-- Injection des Providers React (QueryClientProvider, WalletProvider)
-- Application du thème Tailwind
-
-#### `(auth)/login/page.tsx`
-Page d'accueil pour les utilisateurs non connectés.
-- Bouton "Connecter MetaMask" centré
-- Vérification automatique de la présence de `window.ethereum`
-- Redirection vers `/dashboard` après connexion réussie
-- Message d'erreur si mauvais réseau (non-Sepolia)
-
-#### `(dashboard)/layout.tsx`
-Layout partagé par toutes les pages du dashboard.
-- Sidebar de navigation gauche (persistante)
-- Header haut (wallet badge, notifications, logo)
-- Guard : redirige vers `/login` si wallet non connecté
-- Guard : alerte si réseau non-Sepolia
-
-#### `(dashboard)/dashboard/page.tsx`
-Page principale du tableau de bord.
-- 4 KPI Cards (Budget total, Dépenses, Recettes, Transactions)
-- Graphique d'évolution mensuelle (Recharts LineChart)
-- Graphique dépenses par catégorie (Recharts PieChart)
-- Widget carte Côte d'Ivoire avec communes actives
-- Widget dernières transactions (5 dernières)
-- Widget alertes budgétaires
-
-#### `(dashboard)/transactions/page.tsx`
-Liste paginée de toutes les transactions.
-- Filtres : période, catégorie, commune, type (dépense/recette), montant min/max
-- Tri : date, montant, statut blockchain
-- Export CSV / PDF
-- Colonne hash TX → lien Etherscan
-
-#### `(dashboard)/transactions/nouvelle/page.tsx`
-Formulaire de saisie d'une nouvelle transaction budgétaire.
-- Champs : montant (FCFA), catégorie, bénéficiaire, n° marché, description, commune
-- Validation en temps réel (Zod)
-- Étape 1 : prévisualisation et confirmation
-- Étape 2 : signature MetaMask (`signTransaction`)
-- Étape 3 : envoi sur Sepolia + affichage hash TX
-- Étape 4 : confirmation (attente 2 blocs)
-
-#### `(dashboard)/transactions/[id]/page.tsx`
-Détail complet d'une transaction.
-- Toutes les métadonnées : montant, catégorie, bénéficiaire, signataire
-- Hash TX avec lien Etherscan → vérification indépendante
-- Numéro de bloc, timestamp Unix, statut
-- Bouton "Vérifier sur Etherscan"
-
-#### `(dashboard)/communes/page.tsx`
-Liste des 201 communes ivoiriennes.
-- Filtres : région, district, budget disponible
-- Carte géolocalisée cliquable
-- Indicateurs par commune : budget alloué / dépensé / restant
-
-#### `(dashboard)/wallet/page.tsx`
-Tableau de bord wallet.
-- Adresse complète avec bouton copie
-- Solde SepoliaETH
-- Historique des transactions signées
-- Bouton switch réseau (si non-Sepolia)
-- Lien vers Sepolia Etherscan
-
-#### `app/api/` — Mock API Routes (Phase 1)
-Routes Next.js simulant le backend Django en Phase 1.
-
-| Route | Méthode | Réponse |
-|-------|---------|---------|
-| `/api/transactions` | GET | Liste paginée depuis `mock/transactions.json` |
-| `/api/transactions` | POST | Valide le body, retourne la TX simulée |
-| `/api/transactions/:id` | GET | Transaction unique par ID |
-| `/api/communes` | GET | 201 communes depuis `mock/communes.json` |
-| `/api/communes/:slug` | GET | Profil d'une commune |
-| `/api/stats` | GET | KPIs depuis `mock/stats.json` |
-| `/api/bailleurs` | GET | Liste des bailleurs |
+| Méthode | Endpoint | Auth | Rôle | Description |
+|---|---|---|---|---|
+| POST | `/api/auth/login/` | Non | Tous | Login → access + refresh JWT |
+| POST | `/api/auth/register/` | Non | Citoyen | Inscription publique |
+| GET | `/api/auth/me/` | Oui | Tous | Profil utilisateur connecté |
+| POST | `/api/auth/refresh/` | Non | Tous | Renouveler le token access |
+| GET | `/api/communes/` | Oui | Tous | Liste des communes (paginé, filtres: search, region) |
+| GET | `/api/communes/<id>/` | Oui | Tous | Détail commune |
+| GET | `/api/transactions/` | Oui | Tous | Liste transactions (filtres: commune, type, statut) |
+| GET | `/api/transactions/<id>/` | Oui | Tous | Détail transaction |
+| POST | `/api/transactions/soumettre/` | Oui | AGENT_FINANCIER | Créer transaction (statut SOUMIS) |
+| PATCH | `/api/transactions/<id>/valider/` | Oui | MAIRE | Valider → appelle blockchain si configuré |
+| GET | `/api/transactions/commune/<id>/` | Oui | Mairie/Contrôle | Transactions d'une commune spécifique |
 
 ---
 
-### `src/components/`
+## Flux d'authentification JWT
 
-#### `ui/` — Design System
-Composants atomiques sans logique métier. Stylés avec Tailwind, typés avec TypeScript.
-Chaque composant expose des `variants` (ex : `Button` → `primary | ghost | danger | outline`).
-
-#### `wallet/WalletConnect.tsx`
-Bouton intelligent d'état :
-- État "non connecté" → bouton orange "Connecter MetaMask"
-- État "connexion en cours" → spinner + "Connexion..."
-- État "mauvais réseau" → alerte rouge + bouton "Passer sur Sepolia"
-- État "connecté" → adresse tronquée + bouton "Déconnecter"
-
-#### `wallet/NetworkGuard.tsx`
-Composant wrapper qui bloque l'accès à son contenu si le réseau n'est pas Sepolia.
-Affiche une modale d'avertissement avec bouton "Changer de réseau" (`wallet_switchEthereumChain`).
-
-#### `blockchain/TransactionHash.tsx`
-Affiche un hash TX `0x3f8a...e841` avec :
-- Icône copie (presse-papier)
-- Lien vers `https://sepolia.etherscan.io/tx/{hash}`
-- Tooltip avec hash complet au survol
-
-#### `transactions/TransactionForm.tsx`
-Formulaire multi-étapes de saisie de transaction. Étapes :
-1. Saisie des données (validation Zod en temps réel)
-2. Prévisualisation récapitulative
-3. Confirmation MetaMask (déclenche `contract.recordEntry()`)
-4. Succès avec hash TX et lien Etherscan
-
----
-
-### `src/hooks/`
-
-#### `useWallet.ts`
-Hook central de gestion du wallet MetaMask.
-- État : `address`, `balance`, `chainId`, `isConnected`, `isConnecting`, `error`
-- Actions : `connect()`, `disconnect()`
-- Listeners : `accountsChanged`, `chainChanged`
-- Auto-détection de connexion existante au chargement
-
-#### `useContract.ts`
-Retourne une instance du smart contract `BudgetLedger`.
-- En lecture seule : utilise `JsonRpcProvider` (Alchemy)
-- En écriture : utilise `BrowserProvider` + `Signer` (MetaMask)
-- Expose : `recordEntry()`, `getEntry()`, `getByPeriod()`, `getByCategory()`
-
-#### `useBlockchain.ts`
-Données blockchain en temps réel.
-- Numéro de bloc (mis à jour à chaque nouveau bloc via `provider.on("block")`)
-- Prix du gas (`provider.getFeeData()`)
-- Cleanup automatique des listeners au démontage
-
-#### `useTransactions.ts`
-Gestion des transactions avec React Query.
-- Phase 1 : fetch depuis `/api/transactions` (données mockées)
-- Phase 2 : fetch depuis l'API Django + events The Graph
-- Cache automatique, invalidation après mutation
-- Pagination et filtres
-
----
-
-### `src/lib/`
-
-#### `ethers.ts`
-```typescript
-// Provider lecture seule (Alchemy Sepolia)
-export const getReadProvider = () => new ethers.JsonRpcProvider(SEPOLIA_RPC_URL)
-
-// Provider MetaMask (écriture + signature)
-export const getBrowserProvider = () => new ethers.BrowserProvider(window.ethereum)
-
-// Utilitaires
-export const formatAddress = (addr: string) => `${addr.slice(0,6)}...${addr.slice(-4)}`
-export const formatBalance = (bal: bigint) => parseFloat(ethers.formatEther(bal)).toFixed(4)
-export const isSepoliaNetwork = (chainId: number) => chainId === 11155111
 ```
-
-#### `contract.ts`
-ABI complet de `BudgetLedger.sol` et factory d'instance.
-```typescript
-export const getBudgetLedgerContract = (signerOrProvider) =>
-  new ethers.Contract(CONTRACT_ADDRESS, BUDGET_LEDGER_ABI, signerOrProvider)
-```
-
-#### `formatters.ts`
-```typescript
-export const formatFCFA = (amount: number) =>
-  new Intl.NumberFormat('fr-CI', { style: 'currency', currency: 'XOF' }).format(amount)
-
-export const formatDate = (timestamp: number) =>
-  new Date(timestamp * 1000).toLocaleDateString('fr-CI', { dateStyle: 'long' })
-```
-
-#### `constants.ts`
-```typescript
-export const SEPOLIA_CHAIN_ID = 11155111
-export const SEPOLIA_RPC_URL = process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL
-export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
-export const ETHERSCAN_BASE_URL = 'https://sepolia.etherscan.io'
-export const TOTAL_COMMUNES = 201
+1. POST /api/auth/login/ → { access: "eyJ...", refresh: "eyJ..." }
+2. lib/api.ts stocke les tokens :
+   - localStorage ("komoe_access", "komoe_refresh")
+   - Cookie HttpOnly "komoe_access" (pour proxy.ts)
+3. proxy.ts (middleware Next.js) :
+   - Lit le cookie "komoe_access"
+   - Décode le JWT (sans clé secrète — lecture du payload uniquement)
+   - Extrait user.role → redirige vers /public, /commune, ou /controle
+4. Chaque appel API : header Authorization: Bearer <access>
+5. Si 401 → lib/api.ts refresh automatique via /api/auth/refresh/
 ```
 
 ---
 
-### `src/types/`
+## Service Blockchain (backend/apps/blockchain/service.py)
 
-#### `transaction.ts`
-```typescript
-export type TransactionType = 'DEPENSE' | 'RECETTE'
-export type TransactionStatus = 'EN_ATTENTE' | 'CONFIRME' | 'ECHOUE'
+Le `BlockchainService` est une classe qui encapsule toutes les interactions avec Polygon.
 
-export interface BudgetTransaction {
-  id: string
-  type: TransactionType
-  montant: number                    // En FCFA
-  categorie: BudgetCategory
-  beneficiaire: string
-  numeroMarche?: string
-  description: string
-  commune: string
-  signataire: string                 // Adresse Ethereum 0x...
-  txHash?: string                    // Hash Ethereum (null si non encore on-chain)
-  blockNumber?: number
-  timestamp: number                  // Unix timestamp
-  status: TransactionStatus
-}
+**Sécurité clé :** `is_configured()` est appelé AVANT chaque opération blockchain. Si les variables d'environnement manquent (POLYGON_RPC_URL, CONTRACT_ADDRESS, DEPLOYER_PRIVATE_KEY), le service ne fait rien et renvoie None — **le backend fonctionne parfaitement sans blockchain configurée**.
+
 ```
+Flux de validation (avec blockchain configurée) :
+  MAIRE clique "Valider"
+  → views.py → BlockchainService.is_configured() → True
+  → valider_depense(id, commune, montant, categorie, ipfs_hash)
+  → Web3.py signe avec DEPLOYER_PRIVATE_KEY
+  → Envoie via POLYGON_RPC_URL (Alchemy)
+  → Attend confirmation (~2s)
+  → Retourne tx_hash → stocké dans transaction.blockchain_tx_hash_validation
+  → Transaction.statut = VALIDE
 
-#### `global.d.ts`
-```typescript
-interface Window {
-  ethereum?: {
-    request: (args: { method: string; params?: any[] }) => Promise<any>
-    on: (event: string, handler: (...args: any[]) => void) => void
-    removeListener: (event: string, handler: (...args: any[]) => void) => void
-    isMetaMask?: boolean
-  }
-}
+Sans blockchain (dev local sans clés) :
+  → BlockchainService.is_configured() → False
+  → Transaction.statut = VALIDE (sans tx_hash)
+  → Tout fonctionne pour la démo
 ```
 
 ---
 
-### `src/mock/`
+## Feature Flags (frontend)
 
-#### `transactions.json`
-50+ transactions fictives couvrant :
-- Communes : Abidjan-Cocody, Yopougon, Bouaké, San-Pédro, etc.
-- Catégories : Infrastructure, Santé, Éducation, Agriculture, Eau, Sécurité
-- Bénéficiaires : COLAS CI, CHU Cocody, Ministère de l'Éducation, etc.
-- Statuts variés : confirmé, en attente, échoué
-- Hashes TX fictifs (format `0x...`) pour simuler Etherscan
+Contrôlés dans `.env.local` :
 
-#### `communes.json`
-201 communes ivoiriennes avec :
-- Nom, slug, district, région, coordonnées GPS
-- Budget alloué (en FCFA), budget dépensé, budget restant
-- Nombre de transactions enregistrées
-
-#### `categories.json`
-Alignées sur les Objectifs de Développement Durable (ODD) :
-```json
-[
-  { "code": "INFRA", "label": "Infrastructure", "odd": "ODD 9", "couleur": "#FF6B35" },
-  { "code": "SANTE", "label": "Santé", "odd": "ODD 3", "couleur": "#E63946" },
-  { "code": "EDU",   "label": "Éducation", "odd": "ODD 4", "couleur": "#457B9D" },
-  { "code": "EAU",   "label": "Eau & Assainissement", "odd": "ODD 6", "couleur": "#1D9E75" }
-]
-```
+| Variable | `true` | `false` |
+|---|---|---|
+| `NEXT_PUBLIC_USE_MOCK_DATA` | Données JSON dans `/mock/` | Appels API Django réels |
+| `NEXT_PUBLIC_ENABLE_BLOCKCHAIN` | Interactions on-chain activées | Blockchain désactivée |
 
 ---
 
-### `contracts/BudgetLedger.sol`
+## Ce qui est implémenté (Phase 1 + 2 ✅)
 
-Voir section dédiée ci-dessous (§7).
+### Backend Django
+- [x] Modèle `User` custom (UUID, email, rôle, profession, wallet)
+- [x] Modèle `Commune` (code unique, région, budget)
+- [x] Modèle `Transaction` (UUID, statut, 2 hashes blockchain, IPFS)
+- [x] Auth JWT (login, register, me, refresh)
+- [x] Permissions par rôle (`IsAgentFinancier`, `IsMaire`, `IsDGDDL`...)
+- [x] API communes (liste + détail + filtres)
+- [x] API transactions (liste + soumission + validation + filtres statut/commune)
+- [x] Service blockchain (Web3.py, lazy loading, safe si non configuré)
+- [x] Seed data : 7 comptes de test + 5 communes + transactions
+- [x] Tests pytest (users + communes + transactions)
 
----
+### Frontend Next.js
+- [x] 33+ pages créées (controle/*, commune/*, public/*)
+- [x] Build propre sans erreur TypeScript
+- [x] Auth context (`useAuth` hook, Provider global)
+- [x] Client API (`lib/api.ts`) avec refresh JWT automatique
+- [x] `proxy.ts` : middleware redirect par rôle
+- [x] Sidebar conditionnelle (`onlyFor: string[]` par item)
+- [x] Layouts dynamiques (rôle lu depuis JWT, non hardcodé)
+- [x] Hooks `useCommunes` et `useTransactions`
+- [x] ABI BudgetLedger.json présent dans `lib/abi/`
 
-## 7. Smart Contract BudgetLedger.sol
-
-Déployé sur **Ethereum Sepolia Testnet** (Phase 1–2), puis **Mainnet / Polygon L2** (Phase 3).
-
-### Fonctions principales
-
-| Fonction | Visibilité | Description |
-|----------|------------|-------------|
-| `recordEntry(montant, categorie, beneficiaire, commune, txType)` | `external onlyOwner` | Enregistre une transaction. Émet `BudgetEntryRecorded`. |
-| `getEntry(id)` | `external view` | Retourne la struct `BudgetEntry` immuable. |
-| `verifyEntry(hash)` | `external view` | Vérifie un hash et retourne ses métadonnées. |
-| `getByPeriod(start, end)` | `external view` | Filtre les entrées sur une plage de timestamps Unix. |
-| `getByCategory(categorieCode)` | `external view` | Agrège les dépenses par catégorie ODD. |
-| `transferOwnership(newOwner)` | `external onlyOwner` | Changement de signataire autorisé (fin de mandat). |
-| `pauseContract()` | `external onlyMultiSig` | Circuit breaker d'urgence (décision multi-signature). |
-
-### Events émis
-
-```solidity
-event BudgetEntryRecorded(
-    uint256 indexed id,
-    address indexed signer,
-    uint256 montant,
-    bytes32 categorieHash,
-    uint256 timestamp
-);
-
-event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-event ContractPaused(address indexed triggeredBy, uint256 timestamp);
-```
-
-### Propriétés de sécurité
-
-- **Immuabilité** : code non modifiable après déploiement
-- **Contrôle d'accès** : seul le `owner` (wallet communal) peut appeler `recordEntry()`
-- **Résistance aux collisions** : Keccak-256 (256 bits)
-- **Attack résistance** : nécessiterait > 51% du staking Ethereum (~350 Mds USD)
-- **Circuit breaker** : `pauseContract()` requiert une décision multi-signature
+### Smart Contract
+- [x] `BudgetLedger.sol` écrit (soumettreDepense, validerDepense, enregistrerRecette)
+- [x] Hardhat configuré pour Polygon Amoy
+- [ ] Déploiement sur Amoy (Phase 4 — manuel via Remix)
 
 ---
 
-## 8. Configuration des environnements
+## Ce qui reste (Phases 3-4-5)
 
-### `.env.local` (à créer, jamais versionné)
+> 🔑 **Toutes ces étapes sont manuelles. Aucun code à écrire.**  
+> Phase 3 = créer des comptes en ligne. Phase 4 = déployer (accord équipe requis). Phase 5 = tester.
 
-```env
-# ─── Réseau Ethereum ───────────────────────────────────────────
-NEXT_PUBLIC_CHAIN_ID=11155111
-NEXT_PUBLIC_SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/VOTRE_CLE_ALCHEMY
-NEXT_PUBLIC_ALCHEMY_API_KEY=VOTRE_CLE_ALCHEMY
+### Phase 3 — Comptes externes (à faire MAINTENANT)
 
-# ─── Smart Contract ────────────────────────────────────────────
-NEXT_PUBLIC_CONTRACT_ADDRESS=0x...ADRESSE_DEPLOYEE_SUR_SEPOLIA
+| Sous-phase | Action | Service | Lien |
+|---|---|---|---|
+| **3A** | Créer compte → copier URL RPC Amoy → mettre dans `backend/.env` et `.env.local` | Alchemy | [alchemy.com](https://alchemy.com) |
+| **3B** | Créer wallet dev → exporter clé privée → mettre dans `backend/.env` uniquement | MetaMask | Extension navigateur |
+| **3C** | Coller adresse wallet → recevoir MATIC de test | Faucet Polygon | [faucet.polygon.technology](https://faucet.polygon.technology) |
+| **3D** | Créer compte → copier JWT → mettre dans `backend/.env` | Pinata | [pinata.cloud](https://pinata.cloud) |
 
-# ─── Explorateur blockchain ────────────────────────────────────
-NEXT_PUBLIC_ETHERSCAN_URL=https://sepolia.etherscan.io
+**Après Phase 3 :** relancer `python manage.py runserver` et `npm run dev`. Tester la soumission d'une transaction avec upload de justificatif PDF.
 
-# ─── API Backend (Phase 2 — Django) ───────────────────────────
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-# En production :
-# NEXT_PUBLIC_API_BASE_URL=https://api.komoe.ci
+### Phase 4 — Déploiement smart contract (accord équipe requis)
 
-# ─── The Graph (Phase 2) ───────────────────────────────────────
-NEXT_PUBLIC_GRAPH_URL=https://api.thegraph.com/subgraphs/name/komoe/budget-komoe-ci
+> 🛑 **Ne pas faire cette phase sans avoir eu le feu vert de Brou, Kablan et les autres membres.**
 
-# ─── Feature flags ────────────────────────────────────────────
-NEXT_PUBLIC_USE_MOCK_DATA=true        # true = Phase 1, false = API réelle
-NEXT_PUBLIC_ENABLE_BLOCKCHAIN=true   # true = interactions on-chain activées
-```
+| Étape | Action |
+|---|---|
+| 4A | Aller sur [remix.ethereum.org](https://remix.ethereum.org) → coller le code de `contracts/contracts/BudgetLedger.sol` |
+| 4B | Compiler (version Solidity 0.8.x) |
+| 4C | Deploy → Environment: Injected Provider MetaMask → réseau Polygon Amoy |
+| 4D | Copier l'adresse du contrat → `CONTRACT_ADDRESS` dans `backend/.env` et `.env.local` |
+| 4E | Mettre `NEXT_PUBLIC_ENABLE_BLOCKCHAIN=true` dans `.env.local` |
+| 4F | Relancer les deux serveurs |
 
-### `.env.example` (versionné)
+### Phase 5 — Tests complets (voir `PLAN.md` section Test 1, 2, 3)
 
-Copie de `.env.local` avec toutes les valeurs remplacées par des placeholders explicites.
-
----
-
-## 9. Données mockées (Phase 1)
-
-En Phase 1, aucun backend Django n'est nécessaire. Les données sont servies par :
-
-1. **API Routes Next.js** (`src/app/api/`) qui lisent les fichiers JSON dans `src/mock/`
-2. **React Query** pour le cache et la synchronisation côté client
-3. **Variable d'environnement** `NEXT_PUBLIC_USE_MOCK_DATA=true` pour activer/désactiver
-
-Quand le backend Django sera prêt (Phase 2) :
-- Passer `NEXT_PUBLIC_USE_MOCK_DATA=false`
-- Pointer `NEXT_PUBLIC_API_BASE_URL` vers l'API Django
-- Les hooks `useTransactions`, `useCommunes`, etc. basculeront automatiquement
+| Test | Ce qu'on vérifie |
+|---|---|
+| **Test 1** | Login par rôle → bon redirect + bon menu affiché |
+| **Test 2** | Flux complet Agent → Maire → DGDDL → Citoyen |
+| **Test 3** | API directe via PowerShell (Invoke-RestMethod) |
 
 ---
 
-## 10. Flux complet d'une transaction
+## Commandes utiles
 
-```
-① Agent communal saisit la transaction (TransactionForm.tsx)
-   → Montant : 45 000 000 FCFA
-   → Catégorie : Infrastructure
-   → Bénéficiaire : COLAS CI SA
-   → Marché : MP-2026-CI-0089
+```powershell
+# ── Backend ──────────────────────────────────────────────────────────────────
+cd backend
+venv\Scripts\activate
 
-② Validation Zod côté client (validators.ts)
-   → Tous les champs obligatoires présents
-   → Montant > 0 et ≤ budget disponible
+python manage.py migrate                    # Appliquer les migrations
+python manage.py seed_data                  # Créer communes + comptes de test
+python manage.py runserver                  # Lancer l'API (port 8000)
+pytest                                      # Lancer les tests
+python manage.py makemigrations             # Après modification d'un modèle
 
-③ Responsable clique "Signer et enregistrer"
-   → MetaMask popup s'ouvre
-   → Responsable approuve la transaction
-   → ethers.js envoie la TX sur Sepolia
+# ── Frontend ─────────────────────────────────────────────────────────────────
+npm run dev                                 # Lancer Next.js (port 3000)
+npm run build                               # Build production
+npm run lint                                # ESLint
 
-④ Smart contract BudgetLedger.sol
-   → recordEntry() exécuté
-   → BudgetEntryRecorded event émis
-   → Hash Keccak-256 calculé et stocké
-
-⑤ Confirmation réseau (~12 secondes)
-   → TX incluse dans un bloc
-   → Bloc confirmé par les validateurs Ethereum
-
-⑥ Indexation The Graph (Phase 2)
-   → Subgraph détecte BudgetEntryRecorded
-   → Mise à jour GraphQL en temps réel
-
-⑦ Visibilité publique
-   → Transaction visible sur app KOMOE
-   → Vérifiable sur sepolia.etherscan.io
-   → Aminata (citoyenne, Yopougon) peut vérifier le hash
-```
-
----
-
-## 11. Roadmap des phases
-
-### Phase 1 — Frontend + Blockchain Mock (En cours)
-- [x] Configuration MetaMask + Sepolia
-- [ ] Dashboard admin Next.js complet
-- [ ] Données mockées (50+ transactions, 201 communes)
-- [ ] Intégration ethers.js + lecture smart contract
-- [ ] Smart contract BudgetLedger.sol déployé sur Sepolia
-- [ ] Formulaire saisie transaction avec signature MetaMask
-- [ ] Vérification Etherscan
-
-### Phase 2 — Backend Django
-- [ ] API REST Django (endpoints communes, transactions, stats)
-- [ ] Authentification JWT + MetaMask
-- [ ] Base de données PostgreSQL
-- [ ] Cache Redis
-- [ ] Intégration The Graph (indexation events)
-- [ ] Remplacement données mockées par API réelle
-
-### Phase 3 — Production
-- [ ] Déploiement Mainnet Ethereum / Polygon L2
-- [ ] Application mobile Flutter (citoyens)
-- [ ] Dashboard public citoyen (201 communes)
-- [ ] Intégration Google Maps API
-- [ ] Couverture 3G optimisée (< 200 Ko/session)
-- [ ] Audit de sécurité smart contract
-
----
-
-## 12. Installation et lancement
-
-### Prérequis
-
-- Node.js v18+
-- npm v9+
-- MetaMask installé sur Chrome/Firefox
-- Compte Alchemy (pour le RPC Sepolia)
-- Réseau Sepolia configuré dans MetaMask (Chain ID : 11155111)
-
-### Installation
-
-```bash
-# Cloner le dépôt
-git clone https://github.com/darollo-tech/komoe-dashboard.git
-cd komoe-dashboard
-
-# Installer les dépendances
-npm install
-
-# Configurer l'environnement
-cp .env.example .env.local
-# Éditer .env.local avec tes clés Alchemy et l'adresse du contrat
-```
-
-### Lancement en développement
-
-```bash
-npm run dev
-# → http://localhost:3000
-```
-
-### Build de production
-
-```bash
-npm run build
-npm run start
-```
-
-### Déploiement du smart contract (Sepolia)
-
-```bash
+# ── Smart Contract ────────────────────────────────────────────────────────────
 cd contracts
-npm install
-npx hardhat compile
-npx hardhat run scripts/deploy.ts --network sepolia
-# → Copier l'adresse affichée dans NEXT_PUBLIC_CONTRACT_ADDRESS
+npx hardhat compile                         # Compiler → génère artifacts/ + ABI
+npx hardhat test                            # Tests Hardhat
+npx hardhat run scripts/deploy.ts --network amoy  # Déployer sur Polygon Amoy
 ```
-
-### Scripts disponibles
-
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Serveur de développement Next.js |
-| `npm run build` | Build de production |
-| `npm run start` | Serveur de production |
-| `npm run lint` | ESLint sur tout le code |
-| `npm run type-check` | Vérification TypeScript |
-
----
-
-## 13. Conventions de code
-
-### Nommage
-
-| Élément | Convention | Exemple |
-|---------|------------|---------|
-| Composants React | PascalCase | `TransactionCard.tsx` |
-| Hooks | camelCase avec `use` | `useWallet.ts` |
-| Types | PascalCase | `BudgetTransaction` |
-| Constantes | SCREAMING_SNAKE_CASE | `SEPOLIA_CHAIN_ID` |
-| Fichiers utilitaires | camelCase | `formatters.ts` |
-| Routes (dossiers) | kebab-case | `nouvelle-transaction/` |
-
-### Structure d'un composant
-
-```typescript
-// 1. Imports externes
-import { useState } from "react"
-import { ethers } from "ethers"
-
-// 2. Imports internes (par ordre : types, hooks, lib, composants)
-import type { BudgetTransaction } from "@/types/transaction"
-import { useWallet } from "@/hooks/useWallet"
-import { formatFCFA } from "@/lib/formatters"
-import { Badge } from "@/components/ui/Badge"
-
-// 3. Types du composant
-interface TransactionCardProps {
-  transaction: BudgetTransaction
-  onSelect?: (id: string) => void
-}
-
-// 4. Composant (export nommé préféré à export default)
-export const TransactionCard = ({ transaction, onSelect }: TransactionCardProps) => {
-  // ...
-}
-```
-
-### Commits Git
-
-```
-feat: ajouter formulaire saisie transaction
-fix: corriger validation montant FCFA négatif
-chore: mettre à jour dépendances ethers v6
-docs: mettre à jour README arborescence
-```
-
----
-
-## 14. Contributeurs
-
-| Rôle | Nom |
-|------|-----|
-| Lead Dev Frontend | Darollo Technologies Corporation |
-| Smart Contract | Darollo Technologies Corporation |
-| Design & UX | Darollo Technologies Corporation |
-
-**MIABE Hackathon 2026 · Projet CI-01 · D08**
-Site : [www.miabehackathon.com](https://www.miabehackathon.com)
-
----
-
-> _"Chaque entrée et sortie financière enregistrée sur blockchain est permanente et publique._
-> _Personne — pas même le maire — ne peut modifier ou effacer un enregistrement._
-> _La comptabilité devient un registre public vérifiable par tous en temps réel."_
->
-> — **KOMOE**, Transparence Budgétaire, Côte d'Ivoire 🇨🇮

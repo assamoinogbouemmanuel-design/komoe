@@ -1,5 +1,2 @@
-import { DashboardView } from '@/views/DashboardView';
-
-export default function BailleurDashboard() {
-  return <DashboardView role="BAILLEUR" />;
-}
+import { redirect } from "next/navigation";
+export default function BailleurDashboard() { redirect("/public/dashboard"); }

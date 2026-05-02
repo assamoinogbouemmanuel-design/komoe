@@ -28,7 +28,7 @@ function renderCellValue(value: any): React.ReactNode {
     // Rend le HTML formaté (gras, italique, etc.) dans une div prose compacte
     return (
       <div
-        className="prose prose-sm max-w-none text-slate-700 line-clamp-2 text-xs leading-relaxed [&_b]:font-bold [&_strong]:font-bold [&_i]:italic [&_em]:italic [&_u]:underline [&_s]:line-through"
+        className="prose prose-sm max-w-none text-foreground line-clamp-2 text-xs leading-relaxed [&_b]:font-bold [&_strong]:font-bold [&_i]:italic [&_em]:italic [&_u]:underline [&_s]:line-through"
         dangerouslySetInnerHTML={{ __html: str }}
       />
     );
@@ -40,7 +40,7 @@ function renderCellValue(value: any): React.ReactNode {
   // Email
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(stripped)) {
     return (
-      <a href={`mailto:${stripped}`} className="text-slate-700 hover:underline hover:text-slate-900 transition-colors" onClick={e => e.stopPropagation()}>
+      <a href={`mailto:${stripped}`} className="text-foreground hover:underline hover:text-foreground transition-colors" onClick={e => e.stopPropagation()}>
         {stripped}
       </a>
     );
@@ -48,7 +48,7 @@ function renderCellValue(value: any): React.ReactNode {
   // Téléphone
   if (/^[+\d][\d\s\-().]{6,}$/.test(stripped.trim())) {
     return (
-      <a href={`tel:${stripped.replace(/\s/g, "")}`} className="text-slate-700 hover:underline hover:text-slate-900 transition-colors" onClick={e => e.stopPropagation()}>
+      <a href={`tel:${stripped.replace(/\s/g, "")}`} className="text-foreground hover:underline hover:text-foreground transition-colors" onClick={e => e.stopPropagation()}>
         {stripped}
       </a>
     );
@@ -73,9 +73,9 @@ export default function DataTable<T extends { id: string | number }>({
   }, [data, search]);
 
   return (
-    <div className="bg-white shadow-sm overflow-hidden rounded-3xl border border-slate-100">
+    <div className="bg-card shadow-sm overflow-hidden rounded-3xl border border-border">
       <div className="flex items-center justify-between p-8 pb-4 gap-4">
-        <h2 className="text-xl font-black text-slate-800 tracking-tight">{title}</h2>
+        <h2 className="text-xl font-black text-foreground tracking-tight">{title}</h2>
         <div className="flex-1 flex justify-end">
           <SearchInput onSearch={setSearch} placeholder={t("table.search")} />
         </div>
@@ -84,11 +84,11 @@ export default function DataTable<T extends { id: string | number }>({
       <div className="overflow-x-auto px-6 pb-6">
         <table className="min-w-full border-separate border-spacing-y-0">
           <thead>
-            <tr className="bg-slate-50">
+            <tr className="bg-muted">
               {columns.map((col, index) => (
                 <th
                   key={String(col.key)}
-                  className={`py-4 px-4 text-left text-[13px] font-black text-slate-900 bg-slate-100 tracking-wider ${
+                  className={`py-4 px-4 text-left text-[13px] font-black text-foreground bg-muted/50 tracking-wider ${
                     index === 0 ? "rounded-l-2xl" : ""
                   } ${index === columns.length - 1 ? "rounded-r-2xl" : ""}`}
                 >
@@ -101,9 +101,9 @@ export default function DataTable<T extends { id: string | number }>({
           <tbody className="divide-y divide-slate-50">
             {filteredData.length > 0 ? (
               filteredData.map((item) => (
-                <tr key={item.id} className="group transition-colors hover:bg-slate-50/50">
+                <tr key={item.id} className="group transition-colors hover:bg-muted/50">
                   {columns.map((col) => (
-                    <td key={String(col.key)} className="py-5 px-4 text-sm font-bold text-slate-600">
+                    <td key={String(col.key)} className="py-5 px-4 text-sm font-bold text-muted-foreground">
                       {col.render
                         ? col.render(col.key !== "actions" ? item[col.key as keyof T] : undefined, item)
                         : col.key !== "actions"
@@ -115,7 +115,7 @@ export default function DataTable<T extends { id: string | number }>({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="py-10 text-center text-slate-400 text-sm italic">
+                <td colSpan={columns.length} className="py-10 text-center text-muted-foreground text-sm italic">
                   {t("table.noData")}
                 </td>
               </tr>

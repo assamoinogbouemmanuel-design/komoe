@@ -1,6 +1,6 @@
-"use client";
-import TransactionDetailPage from "@/app/commune/transactions/[id]/page";
+import { redirect } from "next/navigation";
 
-export default function BailleurTransactionDetailPage() {
-  return <TransactionDetailPage />;
+// Les transactions pour un bailleur → page publique
+export default function BailleurTransactionDetail({ params }: { params: { id: string } }) {
+  redirect(`/public/transactions`);
 }

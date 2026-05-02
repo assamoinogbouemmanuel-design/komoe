@@ -14,12 +14,12 @@ import {
 // Mocking missing dependencies for now to ensure compilation
 type DateRange = any;
 const format = (d: any, f: string) => d.toISOString();
-const DateRangePicker = (props: any) => <input type="date" {...props} className="w-full bg-slate-50 rounded-2xl p-4 text-slate-700" />;
+const DateRangePicker = (props: any) => <input type="date" {...props} className="w-full bg-card/5 rounded-2xl p-4 text-white/80" />;
 
 // Input Standard
 export const FormField = ({ label, required, children }: any) => (
   <div className="flex flex-col gap-2 w-full">
-    <label className="text-sm font-bold text-slate-900 tracking-tight">
+    <label className="text-sm font-bold text-white tracking-tight">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     {children}
@@ -30,7 +30,7 @@ export const FormField = ({ label, required, children }: any) => (
 export const Input = (props: any) => (
   <input
     {...props}
-    className="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 transition-all outline-none"
+    className="w-full bg-card/5 border-none rounded-2xl p-4 text-white/80 placeholder:text-white/40 focus:ring-2 focus:ring-primary transition-all outline-none"
   />
 );
 
@@ -40,7 +40,7 @@ export const Select = ({ children, disabled, ...props }: any) => (
     <select
       {...props}
       disabled={disabled}
-      className={`w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 appearance-none outline-none focus:ring-2 focus:ring-slate-900 transition-all ${disabled ? 'opacity-60 cursor-not-allowed bg-slate-100' : ''}`}
+      className={`w-full bg-card/5 border-none rounded-2xl p-4 text-white/80 appearance-none outline-none focus:ring-2 focus:ring-primary transition-all ${disabled ? 'opacity-60 cursor-not-allowed bg-card/10' : ''}`}
     >
       {children}
     </select>
@@ -59,13 +59,13 @@ export const PasswordInput = ({ disabled, ...props }: any) => {
         {...props}
         disabled={disabled}
         type={show ? "text" : "password"}
-        className={`w-full bg-slate-50 border-none rounded-2xl p-4 pr-12 text-slate-700 outline-none focus:ring-2 focus:ring-slate-900 transition-all ${disabled ? 'opacity-60 cursor-not-allowed bg-slate-100' : ''}`}
+        className={`w-full bg-card/5 border-none rounded-2xl p-4 pr-12 text-white/80 outline-none focus:ring-2 focus:ring-primary transition-all ${disabled ? 'opacity-60 cursor-not-allowed bg-card/10' : ''}`}
       />
       {!disabled && (
         <button
           type="button"
           onClick={() => setShow(!show)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
         >
           {show ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
@@ -84,14 +84,14 @@ export const Checkbox = ({ name, label, required, defaultChecked, onChange, disa
         required={required}
         disabled={disabled}
         defaultChecked={defaultChecked}
-        className="peer appearance-none w-6 h-6 rounded-lg border-2 border-slate-200 checked:bg-slate-900 checked:border-slate-900 transition-all cursor-pointer disabled:cursor-not-allowed"
+        className="peer appearance-none w-6 h-6 rounded-lg border-2 border-white/10 checked:bg-primary checked:border-slate-900 transition-all cursor-pointer disabled:cursor-not-allowed"
         onChange={(e) => onChange?.(e.target.checked)}
       />
       <div className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
       </div>
     </div>
-    {label && <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">{label}</span>}
+    {label && <span className="text-sm font-semibold text-white/80 group-hover:text-white transition-colors">{label}</span>}
   </label>
 );
 
@@ -119,7 +119,7 @@ export const DateInput = ({ name, required, disabled, disablePastDates, defaultV
         disablePastDates={disablePastDates ?? false}
         singleDate
         placeholder="Choisir une date"
-        className="w-full [&>button]:w-full [&>button]:justify-between [&>button]:bg-slate-50 [&>button]:border-slate-200 [&>button]:rounded-2xl [&>button]:px-4 [&>button]:py-4 [&>button]:text-slate-700 [&>button]:font-medium [&>button]:text-sm"
+        className="w-full [&>button]:w-full [&>button]:justify-between [&>button]:bg-card/5 [&>button]:border-white/10 [&>button]:rounded-2xl [&>button]:px-4 [&>button]:py-4 [&>button]:text-white/80 [&>button]:font-medium [&>button]:text-sm"
       />
       <input type="hidden" name={name} value={value} required={required} />
     </div>
@@ -145,7 +145,7 @@ export const DateRangeInput = ({ name, required, disabled, disablePastDates, def
         onDateChange={(r: any) => !disabled && setRange(r)}
         disablePastDates={disablePastDates ?? false}
         placeholder="Sélectionner la période (début → fin)"
-        className="w-full [&>button]:w-full [&>button]:justify-between [&>button]:bg-slate-50 [&>button]:border-slate-200 [&>button]:rounded-2xl [&>button]:px-4 [&>button]:py-4 [&>button]:text-slate-700 [&>button]:font-medium [&>button]:text-sm"
+        className="w-full [&>button]:w-full [&>button]:justify-between [&>button]:bg-card/5 [&>button]:border-white/10 [&>button]:rounded-2xl [&>button]:px-4 [&>button]:py-4 [&>button]:text-white/80 [&>button]:font-medium [&>button]:text-sm"
       />
       <input type="hidden" name="start_date" value={range?.from ? format(range.from, "yyyy-MM-dd") : ""} />
       <input type="hidden" name="end_date"   value={range?.to   ? format(range.to,   "yyyy-MM-dd") : (range?.from ? format(range.from, "yyyy-MM-dd") : "")} />
@@ -268,34 +268,34 @@ export const ImageUpload = ({
             min-h-[140px] rounded-3xl cursor-pointer select-none
             transition-all duration-200
             ${dragging
-              ? "bg-slate-900 ring-2 ring-slate-900 ring-offset-2"
-              : "bg-slate-50 hover:bg-slate-100"
+              ? "bg-primary ring-2 ring-primary ring-offset-2"
+              : "bg-card/5 hover:bg-card/10"
             }
-            ${isLoading ? "opacity-60 cursor-wait bg-slate-100" : ""}
+            ${isLoading ? "opacity-60 cursor-wait bg-card/10" : ""}
           `}
         >
           {isLoading ? (
             <div className="flex flex-col items-center gap-2">
-              <span className="w-8 h-8 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Envoi en cours...</p>
+              <span className="w-8 h-8 border-2 border-white/20 border-t-slate-900 rounded-full animate-spin" />
+              <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Envoi en cours...</p>
             </div>
           ) : (
             <>
               <div className={`
                 flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-200
-                ${dragging ? "bg-white/20" : "bg-white shadow-sm"}
+                ${dragging ? "bg-card/20" : "bg-card shadow-sm"}
               `}>
                 <Upload
                   size={22}
-                  className={dragging ? "text-white" : "text-slate-500"}
+                  className={dragging ? "text-white" : "text-white/50"}
                   strokeWidth={2}
                 />
               </div>
               <div className="text-center px-4">
-                <p className={`text-sm font-semibold transition-colors duration-200 ${dragging ? "text-white" : "text-slate-700"}`}>
+                <p className={`text-sm font-semibold transition-colors duration-200 ${dragging ? "text-white" : "text-white/80"}`}>
                   {dragging ? "Déposez ici" : "Glissez vos images"}
                 </p>
-                <p className={`text-[11px] mt-0.5 transition-colors duration-200 ${dragging ? "text-white/70" : "text-slate-400"}`}>
+                <p className={`text-[11px] mt-0.5 transition-colors duration-200 ${dragging ? "text-white/70" : "text-white/40"}`}>
                   ou cliquez pour parcourir · {images.length}/{maxImages} image{maxImages > 1 ? "s" : ""} · <span className="font-bold underline decoration-slate-300">Max {maxSizeMB}Mo</span>
                 </p>
               </div>
@@ -322,7 +322,7 @@ export const ImageUpload = ({
           {images.map((img, i) => (
             <div
               key={img.id}
-              className="group relative rounded-2xl overflow-hidden bg-slate-100 aspect-square"
+              className="group relative rounded-2xl overflow-hidden bg-card/10 aspect-square"
               style={{ animationDelay: `${i * 60}ms` }}
             >
               {/* Image */}
@@ -333,11 +333,11 @@ export const ImageUpload = ({
               />
 
               {/* Overlay on hover */}
-              <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-all duration-200 rounded-2xl" />
+              <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/40 transition-all duration-200 rounded-2xl" />
 
               {/* File name chip */}
               <div className="absolute bottom-0 left-0 right-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
-                <p className="text-[10px] font-semibold text-white truncate bg-slate-900/60 backdrop-blur-sm rounded-xl px-2 py-1">
+                <p className="text-[10px] font-semibold text-white truncate bg-primary/60 backdrop-blur-sm rounded-xl px-2 py-1">
                   {img.name || img.file?.name || "Image"}
                 </p>
               </div>
@@ -349,16 +349,16 @@ export const ImageUpload = ({
                 className="
                   absolute top-2 right-2 w-7 h-7 rounded-xl
                   flex items-center justify-center
-                  bg-white/90 hover:bg-white shadow-sm
+                  bg-card/90 hover:bg-card shadow-sm
                   opacity-0 group-hover:opacity-100
                   transition-all duration-150 active:scale-90
                 "
               >
-                <X size={14} strokeWidth={2.5} className="text-slate-700" />
+                <X size={14} strokeWidth={2.5} className="text-white/80" />
               </button>
 
               {/* Index badge */}
-              <div className="absolute top-2 left-2 w-5 h-5 rounded-lg bg-slate-900/60 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div className="absolute top-2 left-2 w-5 h-5 rounded-lg bg-primary/60 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <span className="text-[9px] font-bold text-white">{i + 1}</span>
               </div>
             </div>
@@ -370,14 +370,14 @@ export const ImageUpload = ({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className="
-                aspect-square rounded-2xl border-2 border-dashed border-slate-200
+                aspect-square rounded-2xl border-2 border-dashed border-white/10
                 flex flex-col items-center justify-center gap-1.5
-                hover:border-slate-400 hover:bg-slate-50
+                hover:border-slate-400 hover:bg-card/5
                 transition-all duration-200 active:scale-95
               "
             >
-              <ImagePlus size={20} strokeWidth={2} className="text-slate-400" />
-              <span className="text-[10px] font-semibold text-slate-400">Ajouter</span>
+              <ImagePlus size={20} strokeWidth={2} className="text-white/40" />
+              <span className="text-[10px] font-semibold text-white/40">Ajouter</span>
             </button>
           )}
         </div>
@@ -459,16 +459,16 @@ export const PhoneInput = ({
     <div className="space-y-1">
       <input type="hidden" name={name} value={fullValue} />
 
-      <div className="flex items-stretch bg-slate-50 rounded-2xl overflow-visible relative" ref={dropRef}>
+      <div className="flex items-stretch bg-card/5 rounded-2xl overflow-visible relative" ref={dropRef}>
         <button
           type="button"
           disabled={disabled}
           onClick={() => setOpen(o => !o)}
-          className={`flex items-center gap-1.5 px-3 py-3.5 border-r border-slate-200 shrink-0 hover:bg-slate-100 transition rounded-l-2xl ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+          className={`flex items-center gap-1.5 px-3 py-3.5 border-r border-white/10 shrink-0 hover:bg-card/10 transition rounded-l-2xl ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
         >
           <span className="text-xl leading-none">{selected.flag}</span>
-          <span className="text-xs font-bold text-slate-600 tabular-nums">{selected.dial}</span>
-          <ChevronDown size={12} className={`text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+          <span className="text-xs font-bold text-white/60 tabular-nums">{selected.dial}</span>
+          <ChevronDown size={12} className={`text-white/40 transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
 
         <input
@@ -478,7 +478,7 @@ export const PhoneInput = ({
           disabled={disabled}
           required={required}
           placeholder="07 00 00 00 00"
-          className={`flex-1 bg-transparent p-4 pl-3 text-slate-700 placeholder:text-slate-400 outline-none focus:ring-0 text-sm font-medium ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
+          className={`flex-1 bg-transparent p-4 pl-3 text-white/80 placeholder:text-white/40 outline-none focus:ring-0 text-sm font-medium ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
         />
       </div>
     </div>
@@ -486,7 +486,7 @@ export const PhoneInput = ({
 };
 
 // ─── RICH TEXT EDITOR ─────────────────────────────────────────────────────────
-export const RichTextEditor = ({ label, placeholder, name, defaultValue }: any) => {
+export const RichTextEditor = ({ label, placeholder, name, defaultValue, onChange }: any) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const hiddenRef = useRef<HTMLInputElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
@@ -521,12 +521,13 @@ export const RichTextEditor = ({ label, placeholder, name, defaultValue }: any) 
     const raw = e.currentTarget.innerHTML;
     const cleaned = cleanHtml(raw);
     if (hiddenRef.current) hiddenRef.current.value = cleaned;
+    onChange?.(cleaned);
   };
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <div className="w-full bg-slate-50 rounded-3xl overflow-hidden border border-transparent focus-within:ring-2 focus-within:ring-slate-900 transition-all">
-        <div className="flex flex-wrap items-center gap-1 p-2 bg-slate-200/50 border-b border-slate-200">
+      <div className="w-full bg-card/5 rounded-3xl overflow-hidden border border-transparent focus-within:ring-2 focus-within:ring-primary transition-all">
+        <div className="flex flex-wrap items-center gap-1 p-2 bg-card/15/50 border-b border-white/10">
           <ToolbarButton icon={Bold} onClick={() => applyStyle("bold")} />
           <ToolbarButton icon={Italic} onClick={() => applyStyle("italic")} />
           <ToolbarButton icon={Underline} onClick={() => applyStyle("underline")} />
@@ -561,7 +562,7 @@ export const RichTextEditor = ({ label, placeholder, name, defaultValue }: any) 
           ref={editorRef}
           contentEditable
           suppressContentEditableWarning
-          className="w-full min-h-[180px] p-5 text-slate-700 outline-none bg-transparent prose prose-slate max-w-none leading-relaxed"
+          className="w-full min-h-[180px] p-5 text-white/80 outline-none bg-transparent prose prose-slate max-w-none leading-relaxed"
           onInput={handleInput}
         />
         <input type="hidden" name={name} id={`hidden-${name}`} ref={hiddenRef} />
@@ -689,34 +690,34 @@ export const PdfUpload = ({
             min-h-[120px] rounded-3xl cursor-pointer select-none
             transition-all duration-200 border-2 border-dashed
             ${dragging
-              ? "bg-slate-900 border-slate-900 ring-2 ring-slate-900 ring-offset-2"
-              : "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+              ? "bg-primary border-slate-900 ring-2 ring-primary ring-offset-2"
+              : "bg-card/5 border-white/10 hover:bg-card/10 hover:border-white/20"
             }
-            ${isLoading ? "opacity-60 cursor-wait bg-slate-100" : ""}
+            ${isLoading ? "opacity-60 cursor-wait bg-card/10" : ""}
           `}
         >
           {isLoading ? (
             <div className="flex flex-col items-center gap-2">
-              <span className="w-8 h-8 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Envoi en cours...</p>
+              <span className="w-8 h-8 border-2 border-white/20 border-t-slate-900 rounded-full animate-spin" />
+              <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Envoi en cours...</p>
             </div>
           ) : (
             <>
               <div className={`
                 flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-200
-                ${dragging ? "bg-white/20" : "bg-white shadow-sm"}
+                ${dragging ? "bg-card/20" : "bg-card shadow-sm"}
               `}>
                 <Upload
                   size={22}
-                  className={dragging ? "text-white" : "text-slate-500"}
+                  className={dragging ? "text-white" : "text-white/50"}
                   strokeWidth={2}
                 />
               </div>
               <div className="text-center">
-                <p className={`text-sm font-semibold transition-colors duration-200 ${dragging ? "text-white" : "text-slate-700"}`}>
+                <p className={`text-sm font-semibold transition-colors duration-200 ${dragging ? "text-white" : "text-white/80"}`}>
                   {dragging ? "Déposez ici" : (placeholder || (accept.includes("image") ? "Cliquez pour uploader (Photos, PDF)" : "Cliquez pour uploader le PDF"))}
                 </p>
-                <p className={`text-[11px] mt-0.5 transition-colors duration-200 ${dragging ? "text-white/70" : "text-slate-400"}`}>
+                <p className={`text-[11px] mt-0.5 transition-colors duration-200 ${dragging ? "text-white/70" : "text-white/40"}`}>
                   {(accept.includes("image") || accept.includes("*")) ? "Images et documents acceptés" : (placeholder?.includes("PDF") || accept.includes("pdf") ? "Documents PDF uniquement" : "Documents acceptés")} · <span className="font-bold underline decoration-slate-300">Max {maxSizeMB}Mo</span>
                 </p>
               </div>
@@ -742,23 +743,23 @@ export const PdfUpload = ({
           {pdfs.map((p) => (
             <div
               key={p.id}
-              className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-1"
+              className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border shadow-sm animate-in fade-in slide-in-from-top-1"
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                 p.name.toLowerCase().endsWith(".pdf") ? "bg-red-50" :
                 p.name.toLowerCase().match(/\.(doc|docx)$/) ? "bg-blue-50" :
                 p.name.toLowerCase().match(/\.(xls|xlsx|csv)$/) ? "bg-emerald-50" :
-                "bg-slate-50"
+                "bg-card/5"
               }`}>
                 {p.name.toLowerCase().endsWith(".pdf") ? <FileText size={20} className="text-red-500" /> :
                  p.name.toLowerCase().match(/\.(doc|docx)$/) ? <FileText size={20} className="text-blue-500" /> :
                  p.name.toLowerCase().match(/\.(xls|xlsx|csv)$/) ? <FileSpreadsheet size={20} className="text-emerald-500" /> :
-                 p.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/) ? <ImageIcon size={20} className="text-slate-500" /> :
-                 <FileBox size={20} className="text-slate-500" />}
+                 p.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/) ? <ImageIcon size={20} className="text-white/50" /> :
+                 <FileBox size={20} className="text-white/50" />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-900 truncate">{p.name}</p>
-                <p className="text-[10px] text-slate-400 uppercase font-black">
+                <p className="text-sm font-bold text-white truncate">{p.name}</p>
+                <p className="text-[10px] text-white/40 uppercase font-black">
                   {p.name.toLowerCase().endsWith(".pdf") ? "Document PDF" :
                    p.name.toLowerCase().match(/\.(doc|docx)$/) ? "Document Word" :
                    p.name.toLowerCase().match(/\.(xls|xlsx|csv)$/) ? "Feuille de calcul" :
@@ -769,7 +770,7 @@ export const PdfUpload = ({
               <button
                 type="button"
                 onClick={() => remove(p.id)}
-                className="p-2 hover:bg-slate-50 rounded-xl transition text-slate-400 hover:text-red-500"
+                className="p-2 hover:bg-card/5 rounded-xl transition text-white/40 hover:text-red-500"
               >
                 <X size={18} />
               </button>
@@ -823,27 +824,27 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="border border-slate-100 rounded-[24px] overflow-hidden bg-white shadow-sm">
+      <div className="border border-border rounded-[24px] overflow-hidden bg-card shadow-sm">
         {/* Table header */}
-        <div className="hidden sm:grid grid-cols-[2fr_1fr_1.5fr_1fr_auto] gap-2 px-4 py-3 bg-slate-50 border-b border-slate-100">
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Quantité</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Prix U. HT</div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Total HT</div>
+        <div className="hidden sm:grid grid-cols-[2fr_1fr_1.5fr_1fr_auto] gap-2 px-4 py-3 bg-card/5 border-b border-border">
+          <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">Description</div>
+          <div className="text-[10px] font-black text-white/40 uppercase tracking-widest text-center">Quantité</div>
+          <div className="text-[10px] font-black text-white/40 uppercase tracking-widest text-right">Prix U. HT</div>
+          <div className="text-[10px] font-black text-white/40 uppercase tracking-widest text-right">Total HT</div>
           <div className="w-8"></div>
         </div>
 
         {/* Items */}
         <div className="divide-y divide-slate-50">
           {items.map((item, i) => (
-            <div key={i} className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1.5fr_1fr_auto] gap-3 sm:gap-2 p-4 sm:p-2 sm:px-4 items-center group transition-colors hover:bg-slate-50/50">
+            <div key={i} className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1.5fr_1fr_auto] gap-3 sm:gap-2 p-4 sm:p-2 sm:px-4 items-center group transition-colors hover:bg-card/5/50">
               <input
                 type="text"
                 value={item.designation}
                 onChange={e => updateItem(i, "designation", e.target.value)}
                 disabled={disabled}
                 placeholder="Ex: Main d'oeuvre"
-                className="w-full bg-slate-50 sm:bg-transparent border border-slate-200 sm:border-transparent rounded-xl px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-all"
+                className="w-full bg-card/5 sm:bg-transparent border border-white/10 sm:border-transparent rounded-xl px-3 py-2 text-sm text-white placeholder:text-white/40 focus:bg-card focus:border-slate-900 focus:ring-1 focus:ring-primary outline-none transition-all"
               />
               <input
                 type="number"
@@ -852,7 +853,7 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
                 onChange={e => updateItem(i, "quantity", Math.max(1, parseInt(e.target.value) || 0))}
                 disabled={disabled}
                 placeholder="Qté"
-                className="w-full bg-slate-50 sm:bg-transparent border border-slate-200 sm:border-transparent rounded-xl px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 text-center focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-all"
+                className="w-full bg-card/5 sm:bg-transparent border border-white/10 sm:border-transparent rounded-xl px-3 py-2 text-sm text-white placeholder:text-white/40 text-center focus:bg-card focus:border-slate-900 focus:ring-1 focus:ring-primary outline-none transition-all"
               />
               <div className="relative">
                 <input
@@ -863,12 +864,12 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
                   onChange={e => updateItem(i, "unit_price", parseFloat(e.target.value) || 0)}
                   disabled={disabled}
                   placeholder="Prix"
-                  className="w-full bg-slate-50 sm:bg-transparent border border-slate-200 sm:border-transparent rounded-xl px-3 py-2 pr-10 text-sm text-slate-900 placeholder:text-slate-400 text-right focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none transition-all tabular-nums"
+                  className="w-full bg-card/5 sm:bg-transparent border border-white/10 sm:border-transparent rounded-xl px-3 py-2 pr-10 text-sm text-white placeholder:text-white/40 text-right focus:bg-card focus:border-slate-900 focus:ring-1 focus:ring-primary outline-none transition-all tabular-nums"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">FCFA</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-white/40 pointer-events-none">FCFA</span>
               </div>
-              <div className="text-right text-sm font-bold text-slate-900 tabular-nums px-3 py-2">
-                {((item.quantity || 0) * (item.unit_price || 0)).toLocaleString()} <span className="text-[10px] text-slate-400 font-normal">FCFA</span>
+              <div className="text-right text-sm font-bold text-white tabular-nums px-3 py-2">
+                {((item.quantity || 0) * (item.unit_price || 0)).toLocaleString()} <span className="text-[10px] text-white/40 font-normal">FCFA</span>
               </div>
               <div className="flex justify-end">
                 <button
@@ -885,13 +886,13 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
         </div>
 
         {/* Add button & Totals */}
-        <div className="bg-slate-50 border-t border-slate-100 p-4">
+        <div className="bg-card/5 border-t border-border p-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
             <button
               type="button"
               disabled={disabled}
               onClick={addItem}
-              className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 text-xs font-bold text-white/60 hover:text-white px-4 py-2.5 rounded-xl bg-card border border-white/10 hover:border-white/20 transition-all shadow-sm active:scale-95 disabled:opacity-50"
             >
               <Plus size={14} strokeWidth={3} />
               Ajouter une ligne
@@ -899,16 +900,16 @@ export const QuoteItemsInput = ({ name, defaultValue, onChange, disabled }: any)
 
             <div className="w-full sm:w-64 space-y-2">
               <div className="flex justify-between text-xs items-center">
-                <span className="text-slate-500 font-medium">Total HT</span>
-                <span className="font-bold text-slate-700 tabular-nums">{totalHT.toLocaleString()} FCFA</span>
+                <span className="text-white/50 font-medium">Total HT</span>
+                <span className="font-bold text-white/80 tabular-nums">{totalHT.toLocaleString()} FCFA</span>
               </div>
               <div className="flex justify-between text-xs items-center">
-                <span className="text-slate-500 font-medium">TVA (18%)</span>
-                <span className="text-slate-500 tabular-nums italic">calculé auto ({tva.toLocaleString()} FCFA)</span>
+                <span className="text-white/50 font-medium">TVA (18%)</span>
+                <span className="text-white/50 tabular-nums italic">calculé auto ({tva.toLocaleString()} FCFA)</span>
               </div>
-              <div className="flex justify-between text-sm items-center pt-2 border-t border-slate-200/60 mt-2">
-                <span className="font-black text-slate-900">Total TTC</span>
-                <span className="font-black text-slate-900 tabular-nums">{totalTTC.toLocaleString()} FCFA</span>
+              <div className="flex justify-between text-sm items-center pt-2 border-t border-white/10/60 mt-2">
+                <span className="font-black text-white">Total TTC</span>
+                <span className="font-black text-white tabular-nums">{totalTTC.toLocaleString()} FCFA</span>
               </div>
             </div>
           </div>
@@ -924,7 +925,7 @@ const ToolbarButton = ({ icon: Icon, onClick, title }: any) => (
     title={title}
     onMouseDown={(e) => e.preventDefault()}
     onClick={onClick}
-    className="p-2 hover:bg-white rounded-xl text-slate-500 hover:text-slate-900 transition-all active:scale-90"
+    className="p-2 hover:bg-card rounded-xl text-white/50 hover:text-white transition-all active:scale-90"
   >
     <Icon size={18} strokeWidth={2.5} />
   </button>

@@ -1,46 +1,66 @@
 "use client";
 
 import { Role } from '@/types';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { ExternalLink, Filter, FileText } from 'lucide-react';
+import { ExternalLink, FileText, Download, Loader2, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import DataTable, { ColumnConfig } from '@/components/ui/DataTable';
-import { Drawer } from '@/components/ui/Drawer';
-import { useState } from 'react';
-import transactionsData from '@/mock/transactions.json';
+import { useAuth } from '@/lib/auth-context';
+import { useCommuneTransactions, useTransactionsList, STATUT_LABELS, STATUT_VARIANT } from '@/lib/hooks/useTransactions';
+import { type Transaction } from '@/lib/api';
+import { formatFCFA, formatDateShort, truncateHash, polygonscanTxUrl } from '@/lib/constants';
 
 interface TransactionsViewProps {
   role: Role;
 }
 
+const StatusBadge = ({ status }: { status: string }) => (
+  <Badge variant={STATUT_VARIANT[status] ?? 'outline'}>
+    {STATUT_LABELS[status] ?? status}
+  </Badge>
+);
+
+const getDetailRoute = (role: Role, id: string) => {
+  if (role === 'AGENT_FINANCIER' || role === 'MAIRE') return `/commune/transactions/${id}`;
+  if (role === 'DGDDL' || role === 'COUR_COMPTES')   return `/controle/transactions/${id}`;
+  return `/public/transactions/${id}`;
+};
+
+const exportCSV = (txs: Transaction[]) => {
+  const header = 'ID,Type,Montant,Catégorie,Description,Statut,Date,Hash Polygon';
+  const rows = txs.map(t =>
+    [t.id, t.type, t.montant_fcfa, t.categorie, `"${t.description}"`, t.statut, t.created_at, t.blockchain_tx_hash_validation].join(',')
+  );
+  const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'transactions_komoe.csv'; a.click();
+  URL.revokeObjectURL(url);
+};
+
 export const TransactionsView = ({ role }: TransactionsViewProps) => {
-  // Formatage du montant en devise locale (FCFA)
-  const formatXOF = (amount: number) => {
-    return new Intl.NumberFormat('fr-CI', { style: 'currency', currency: 'XOF' }).format(amount);
-  };
+  const { user } = useAuth();
+  const communeId = user?.commune ?? null;
 
-  // Filtrer les transactions en fonction du rôle connecté
-  const getFilteredTransactions = () => {
-    // La commune ne voit que ses propres transactions (et pas les audits système)
-    if (role === 'COMMUNE') return transactionsData.filter(t => t.communeId === 'COM-001' && t.type !== 'AUDIT_LIQUIDITE');
-    // La finance a une vue globale, incluant les audits de liquidité
-    if (role === 'FINANCE') return transactionsData; 
-    // Par défaut (Bailleur), on affiche tout pour la démo
-    return transactionsData; 
-  };
+  const isCommune = role === 'AGENT_FINANCIER' || role === 'MAIRE';
+  const { transactions: communeTxs, loading: lcLoading, error: lcError } = useCommuneTransactions(
+    isCommune ? communeId : null
+  );
+  const { transactions: publicTxs, loading: lpLoading, error: lpError } = useTransactionsList(
+    {}, !isCommune
+  );
 
-  const txs = getFilteredTransactions();
+  const txs = isCommune ? communeTxs : publicTxs;
+  const loading = isCommune ? lcLoading : lpLoading;
+  const error = isCommune ? lcError : lpError;
 
-  const columns: ColumnConfig<any>[] = [
+  const columns: ColumnConfig<Transaction>[] = [
     {
       header: 'Type',
       key: 'type',
       render: (val) => (
-        <Badge variant={val === 'DEPENSE' ? 'destructive' : val === 'RECETTE' ? 'success' : 'secondary'}>
-          {val}
+        <Badge variant={val === 'DEPENSE' ? 'destructive' : 'success'}>
+          {val === 'DEPENSE' ? '↓ Dépense' : '↑ Recette'}
         </Badge>
       ),
     },
@@ -49,75 +69,126 @@ export const TransactionsView = ({ role }: TransactionsViewProps) => {
       key: 'description',
       render: (val, item) => (
         <div>
-          <div className="font-medium text-gray-900">{val}</div>
-          <div className="text-xs text-gray-500 font-normal mt-0.5">Catégorie: {item.categorie}</div>
+          <div className="font-semibold text-foreground line-clamp-1">{val}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{item.categorie}</div>
         </div>
       ),
     },
     {
       header: 'Montant',
-      key: 'montant',
-      render: (val) => (
-        <span className="font-semibold text-slate-800">
-          {val > 0 ? formatXOF(val) : '-'}
+      key: 'montant_fcfa',
+      render: (val, item) => (
+        <span className={`font-bold tabular-nums ${item.type === 'DEPENSE' ? 'text-rose-600' : 'text-emerald-600'}`}>
+          {val > 0 ? formatFCFA(val) : '—'}
         </span>
       ),
     },
     {
       header: 'Date',
-      key: 'date',
-      render: (val) => <span className="text-slate-600">{new Date(val).toLocaleDateString()}</span>,
+      key: 'created_at',
+      render: (val) => <span className="text-muted-foreground text-sm">{formatDateShort(val)}</span>,
     },
     {
-      header: 'Hash',
-      key: 'txHash',
-      render: (val) => (
-        <div className="flex items-center text-sm font-mono text-brand-blue bg-blue-50 px-2 py-1 rounded w-fit">
-          {val}
-          <ExternalLink className="w-3 h-3 ml-1.5" />
-        </div>
-      ),
+      header: 'Statut',
+      key: 'statut',
+      render: (val) => <StatusBadge status={val} />,
+    },
+    {
+      header: 'Preuve Polygon',
+      key: 'blockchain_tx_hash_validation',
+      render: (val) =>
+        val ? (
+          <a
+            href={polygonscanTxUrl(val)}
+            target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs font-mono text-purple-600 bg-purple-50 px-2 py-1 rounded-lg hover:underline w-fit"
+          >
+            {truncateHash(val)}
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        ),
     },
     {
       header: 'Actions',
-      key: 'actions',
-      render: (_, item) => {
-        const route = role === 'COMMUNE' ? 'commune' : role === 'BAILLEUR' ? 'bailleur' : 'finance';
-        return (
-          <Link href={`/${route}/transactions/${item.id}`}>
-            <Button variant="ghost" size="sm">
-              <FileText className="w-4 h-4 mr-2" />
-              Détails
-            </Button>
-          </Link>
-        );
-      }
-    }
+      key: 'id',
+      render: (val) => (
+        <Link href={getDetailRoute(role, val)}>
+          <Button variant="ghost" size="sm">
+            <FileText className="w-4 h-4 mr-2" />
+            Détails
+          </Button>
+        </Link>
+      ),
+    },
   ];
+
+  if (role === 'COUR_COMPTES') {
+    columns.splice(6, 0, {
+      header: 'Justificatif IPFS',
+      key: 'ipfs_hash',
+      render: (val) =>
+        val ? (
+          <span className="text-xs font-mono text-teal-600 bg-teal-50 px-2 py-1 rounded-lg">
+            {val.slice(0, 10)}…
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        ),
+    });
+  }
 
   return (
     <div className="animate-in fade-in duration-500">
-      <div className="mb-8 flex justify-between items-end">
+      <div className="mb-8 flex justify-between items-end flex-wrap gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Registre des Transactions</h2>
-          <p className="text-gray-500">Consultez l'historique immuable gravé sur la blockchain.</p>
+          <h2 className="text-2xl font-bold text-foreground">Registre des Transactions</h2>
+          <p className="text-muted-foreground mt-1">
+            Historique immuable gravé sur la blockchain{' '}
+            <span className="text-purple-600 font-semibold">Polygon</span>.{' '}
+            Chaque ligne est vérifiable sur{' '}
+            <a href="https://amoy.polygonscan.com" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">
+              Polygonscan
+            </a>.
+          </p>
         </div>
-        {/* Bouton d'action uniquement visible par les mairies pour ajouter de nouvelles entrées */}
-        {role === 'COMMUNE' && (
-          <Link href="/commune/transactions/nouvelle">
-            <Button className="bg-brand-orange hover:bg-[#b05020] text-white shadow-md">
-              + Nouvelle Saisie
+        <div className="flex gap-3">
+          {(role === 'DGDDL' || role === 'COUR_COMPTES' || role === 'JOURNALISTE') && (
+            <Button variant="outline" size="sm" onClick={() => exportCSV(txs)}>
+              <Download className="w-4 h-4 mr-2" />
+              Exporter CSV
             </Button>
-          </Link>
-        )}
+          )}
+          {role === 'AGENT_FINANCIER' && (
+            <Link href="/commune/transactions/nouvelle">
+              <Button className="bg-brand-orange hover:bg-[#b05020] text-white shadow-md">
+                + Nouvelle saisie
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
-      {/* Remplacement du vieux tableau par le DataTable stylisé */}
-      <DataTable 
-        title="Historique des Flux" 
-        columns={columns} 
-        data={txs} 
-      />
+      {loading && (
+        <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span className="text-sm">Chargement des transactions…</span>
+        </div>
+      )}
+      {!loading && error && (
+        <div className="flex items-center gap-2 p-4 bg-red-50 rounded-xl text-red-600 text-sm">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          {error}
+        </div>
+      )}
+      {!loading && !error && (
+        <DataTable
+          title={`Historique des flux — ${txs.length} entrée(s)`}
+          columns={columns}
+          data={txs}
+        />
+      )}
     </div>
   );
 };
