@@ -1,448 +1,91 @@
 # 🏛️ KOMOE — BudgetOuvert
-### Plateforme de Transparence Budgétaire Municipale sur Blockchain
 
+### Plateforme de Transparence Budgétaire Municipale sur Blockchain
 > **Hackathon MIABE 2026 | Darollo Technologies Corporation**  
 > Thématique : **D08 — Gouvernance locale & Transparence budgétaire**
 
 ---
 
-## ⚠️ LIRE AVANT TOUT — État du projet & Règle d'équipe
+## 🎯 Présentation de la Solution
 
-> **🛑 Aucun déploiement en production sans accord de tous les membres de l'équipe.**  
-> Toute décision de mise en ligne (hébergement, domaine, réseau blockchain Mainnet) doit être validée collectivement par **Brou, Kablan et les autres membres** avant d'être exécutée.  
-> Si quelqu'un te demande de déployer, **calme-le** et dis-lui : *"Il faut d'abord en parler au reste du groupe."*
+**KOMOE / BudgetOuvert** permet aux 201 communes ivoiriennes d'enregistrer leurs recettes et leurs dépenses sur un **registre blockchain public et immuable** (Polygon), accessible en temps réel à chaque citoyen.
 
-### Où on en est aujourd'hui (02/05/2026)
-
-```
-✅ Phase 1 — TERMINÉE  : Rôles, sidebar conditionnelle, layouts dynamiques
-✅ Phase 2 — TERMINÉE  : Pages branchées sur l'API Django (plus de mocks hardcodés)
-⏳ Phase 3 — EN ATTENTE : Créer les comptes externes (Alchemy, MetaMask, Pinata)
-⏳ Phase 4 — EN ATTENTE : Déployer le smart contract sur Polygon Amoy (testnet)
-⏳ Phase 5 — EN ATTENTE : Tests complets par rôle
-🚫 Déploiement         : NON — seulement après accord équipe + tests locaux OK
-```
-
-### Objectif immédiat
-
-**Faire tourner le projet 100% en local**, avec PostgreSQL + Django + Next.js, et valider le flux complet :
-
-```
-Agent soumet → Maire valide → DGDDL surveille → Citoyen vérifie
-```
-
-Le déploiement en ligne n'est **pas à l'ordre du jour**.
+La plateforme permet :
+1. **Aux Mairies** : Saisir les dépenses, les soumettre, et les valider on-chain.
+2. **Aux Organismes de Contrôle (DGDDL, Cour des Comptes)** : Auditer la gestion des communes, consulter les preuves d'enregistrements blockchain, exporter les données.
+3. **Au Grand Public** : Suivre l'utilisation du budget primitif et vérifier chaque transaction de manière décentralisée.
 
 ---
 
-## 📌 Table des matières
+## 🛠️ Stack Technique
 
-1. [Présentation](#-présentation)
-2. [Stack technique](#-stack-technique)
-3. [Structure du projet](#-structure-du-projet)
-4. [Rôles utilisateurs & comptes de test](#-rôles-utilisateurs--comptes-de-test)
-5. [Démarrer en local — Guide complet](#-démarrer-en-local--guide-complet)
-6. [Variables d'environnement](#-variables-denvironnement)
-7. [Prochaines étapes — Phase 3](#-prochaines-étapes--phase-3)
-8. [Flux métier à tester](#-flux-métier-à-tester)
-9. [Tests](#-tests)
-10. [Documentation](#-documentation)
+- **Backend API** : Django REST Framework 5.1.4, Python 3.11
+- **Base de données** : PostgreSQL 15+ (avec repli automatique intelligent sur SQLite3 pour un développement local ultra résilient)
+- **Frontend** : Next.js 15+ (App Router), React 19+, TypeScript, Tailwind CSS
+- **Smart Contracts** : Solidity + Hardhat
+- **Gestion d'État & Auth** : Context API Next.js & JWT (SimpleJWT)
+- **Réseau Blockchain** : Polygon Amoy (Testnet)
 
 ---
 
-## 🎯 Présentation
+## 🚀 Guide d'Installation Complet (Dev Local)
 
-**KOMOE / BudgetOuvert** permet aux 201 communes ivoiriennes d'enregistrer recettes et dépenses sur un **registre blockchain public et immuable**, accessible en temps réel à chaque citoyen.
-
-| Indicateur | Valeur |
-|---|---|
-| Communes ivoiriennes | 201 |
-| Budget combiné annuel | > 300 milliards FCFA |
-| Communes publiant leurs comptes | < 10 % |
-| Irrégularités dans les comptes audités (2018–2022) | **65 %** |
-| Indice de Transparence Budgétaire CI | 36 / 100 (IBP 2023) |
-
-> *"Le budget d'une commune appartient à ses citoyens. BudgetOuvert leur en donne les clés."*
-
----
-
-## 🛠️ Stack technique
-
-| Couche | Technologie | Version |
-|---|---|---|
-| Backend API | Django REST Framework | 5.1.4 |
-| Frontend | Next.js (App Router) | 16.2.4 |
-| Langage frontend | TypeScript | ^5 |
-| Style | Tailwind CSS | ^4 |
-| **Base de données** | **PostgreSQL** ⚠️ OBLIGATOIRE | ≥ 14 |
-| Blockchain (testnet) | Polygon Amoy | Chain ID : 80002 |
-| Smart contract | Solidity + Hardhat | ^0.8.x |
-| SDK Python → blockchain | Web3.py | 7.6.0 |
-| SDK JS → blockchain | Ethers.js | v6 |
-| Nœud RPC | Alchemy | — |
-| Stockage justificatifs | IPFS via Pinata | — |
-| Auth | JWT (SimpleJWT) | 5.3.1 |
-
-> ⚠️ **SQLite n'est PAS acceptable** pour les tests ni les démos. PostgreSQL est obligatoire.
-
----
-
-## 📁 Structure du projet
-
-> 📖 **Architecture complète → [`STRUCTURE.md`](./STRUCTURE.md)**  
-> Ce fichier contient : schéma BD, tous les endpoints API, flux auth JWT, service blockchain, arborescence annotée fichier par fichier.
-
-```
-komoe/
-├── README.md          ← Ce fichier — point d'entrée
-├── STRUCTURE.md       ← Architecture technique complète
-├── PLAN.md            ← Plan détaillé phases 1→5
-│
-├── proxy.ts           ← Middleware JWT → redirect par rôle
-├── app/               ← Pages Next.js (public/ commune/ controle/)
-├── components/        ← Layout, Sidebar, composants UI
-├── views/             ← DashboardView, TransactionsView
-├── lib/               ← Client API, auth context, hooks, ABI contrat
-├── mock/              ← Données JSON (utilisées si NEXT_PUBLIC_USE_MOCK_DATA=true)
-│
-├── backend/
-│   ├── apps/users/        ← Auth JWT + modèle User
-│   ├── apps/communes/     ← Communes + commande seed_data
-│   ├── apps/transactions/ ← Soumission + validation blockchain
-│   └── apps/blockchain/   ← Service Web3.py (safe sans config)
-│
-├── contracts/
-│   └── contracts/BudgetLedger.sol  ← Smart contract ✅ écrit, ❌ pas encore déployé
-│
-└── ContextDocs/       ← Documentation métier du hackathon
-```
-
----
-
-## 👥 Rôles utilisateurs & comptes de test
-
-### Les 3 groupes d'interfaces
-
-| Groupe | URL | Rôles autorisés |
-|---|---|---|
-| **PUBLIC** | `/public/*` | CITOYEN, JOURNALISTE (=CITOYEN+profession), BAILLEUR |
-| **COMMUNE** | `/commune/*` | MAIRE, AGENT_FINANCIER |
-| **CONTRÔLE** | `/controle/*` | DGDDL, COUR_COMPTES |
-
-### Comptes de test (créés par `python manage.py seed_data`)
-
-| Email | Mot de passe | Rôle | Redirection après login |
-|---|---|---|---|
-| `dgddl@komoe.ci` | `Komoe@2024!` | DGDDL | `/controle/dashboard` — "Comptes" visible |
-| `cour.comptes@komoe.ci` | `Komoe@2024!` | COUR_COMPTES | `/controle/dashboard` — "Comptes" caché |
-| `maire.abobo@komoe.ci` | `Komoe@2024!` | MAIRE | `/commune/dashboard` — "Validation" visible |
-| `agent.abobo@komoe.ci` | `Komoe@2024!` | AGENT_FINANCIER | `/commune/dashboard` — "Nouvelle TX" visible |
-| `citoyen@komoe.ci` | `Komoe@2024!` | CITOYEN | `/public/dashboard` |
-| `journaliste@komoe.ci` | `Komoe@2024!` | CITOYEN (profession=JOURNALISTE) | `/public/dashboard` |
-| `bailleur@komoe.ci` | `Komoe@2024!` | BAILLEUR | `/public/dashboard` — "Projets" visible |
-
----
-
-## 🚀 Démarrer en local — Guide d'Installation Complet (De Zéro)
-
-Ce guide est la **Seule Source de Vérité** pour installer, configurer et lancer le projet KOMOE. Que vous soyez un développeur humain ou une IA d'assistance, suivez ces étapes scrupuleusement dans l'ordre.
-
-### Prérequis (À avoir sur sa machine)
-
-- **Git** — [git-scm.com](https://git-scm.com/)
-- **Python ≥ 3.11** — [python.org](https://www.python.org/downloads/)
-- **Node.js ≥ 18** — [nodejs.org](https://nodejs.org/)
-- **PostgreSQL ≥ 14** — [postgresql.org/download/windows](https://www.postgresql.org/download/windows/)
-
----
-
-### Étape 1 — Clonage du projet
-
-Ouvrez un terminal (Powershell, Bash) et clonez le dépôt :
-
+### 1. Cloner le Projet
 ```bash
 git clone <URL_DU_DEPOT_KOMOE>
 cd komoe
 ```
 
-*(Si vous avez déjà reçu le dossier dézippé, placez-vous simplement à la racine du dossier `komoe` dans votre terminal).*
-
----
-
-### Étape 2 — PostgreSQL : Configuration de la Base de Données
-
-⚠️ **PostgreSQL est strictement OBLIGATOIRE.** SQLite ne doit pas être utilisé.
-
-1. Ouvrez `psql` (via pgAdmin ou en ligne de commande) :
+### 2. Configuration du Backend Django
 ```bash
-psql -U postgres
-```
-2. Créez la base de données et l'utilisateur :
-```sql
-CREATE DATABASE komoe_dev;
-CREATE USER komoe_user WITH PASSWORD 'VotreMotDePasse';
-GRANT ALL PRIVILEGES ON DATABASE komoe_dev TO komoe_user;
-\q
-```
-
----
-
-### Étape 3 — Backend Django (API)
-
-Ouvrez un nouveau terminal et exécutez ces commandes :
-
-```powershell
-# 1. Se placer dans le dossier backend
 cd backend
-
-# 2. Créer et activer l'environnement virtuel Python
 python -m venv venv
 venv\Scripts\activate      # Sur Windows
 # source venv/bin/activate # Sur Mac/Linux
 
-# 3. Installer les dépendances backend
 pip install -r requirements.txt
-
-# 4. Configurer l'environnement
 copy .env.example .env     # Sur Windows
 # cp .env.example .env     # Sur Mac/Linux
 ```
+Mettez à jour les variables d'environnement dans `backend/.env` avec vos identifiants PostgreSQL.
+Si PostgreSQL n'est pas installé, le backend basculera **automatiquement sur SQLite3**.
 
-**CRUCIAL :** Ouvrez le fichier `backend/.env` nouvellement créé et mettez à jour la ligne `DATABASE_URL` avec les identifiants créés à l'Étape 2.
-Exemple : `DATABASE_URL=postgresql://komoe_user:VotreMotDePasse@localhost:5432/komoe_dev`
-
-```powershell
-# 5. Appliquer les migrations (création des tables)
+```bash
 python manage.py migrate
-
-# 6. Générer les données de test (Communes, Utilisateurs, Transactions)
 python manage.py seed_data
-
-# 7. Démarrer le serveur API
 python manage.py runserver
 ```
-✅ L'API backend tourne maintenant sur `http://localhost:8000`. Ne fermez pas ce terminal.
+L'API tourne sur `http://localhost:8000`.
 
----
-
-### Étape 4 — Frontend Next.js (Interface Utilisateur)
-
-Ouvrez un NOUVEAU terminal à la **racine du projet** (`komoe/`) :
-
-```powershell
-# 1. Copier le fichier de configuration environnementale
+### 3. Configuration du Frontend Next.js
+Ouvrez un nouveau terminal à la racine (`komoe/`) :
+```bash
 copy .env.example .env.local
-
-# 2. Vérifier le contenu de .env.local
-# Assurez-vous d'avoir :
-# NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-# NEXT_PUBLIC_USE_MOCK_DATA=false
-
-# 3. Installer les dépendances Node.js
 npm install
-
-# 4. Lancer le serveur de développement Frontend
 npm run dev
 ```
-✅ L'interface web tourne maintenant sur `http://localhost:3000`.
+L'application web tourne sur `http://localhost:3000`.
 
 ---
 
-### Étape 5 — Vérification du Fonctionnement & Design System
+## 👥 Rôles Utilisateurs & Comptes de Test
+Tous ces comptes sont automatiquement créés par la commande `seed_data` :
 
-1. Allez sur [http://localhost:3000](http://localhost:3000) dans votre navigateur.
-2. Vous serez redirigé vers `/login`.
-3. Connectez-vous avec un compte de test généré (ex: `agent.abobo@komoe.ci` / mdp: `Komoe@2024!`).
-
-**💡 Note importante sur le Design System (Thème & Couleurs) :**
-Le projet intègre une stricte charte graphique institutionnelle Côte d'Ivoire (Bleu Nuit, Orange, Blanc) gérée via `next-themes` et Tailwind CSS v4 dans `app/globals.css`. 
-- Ne remplacez pas aléatoirement le `--background` ou les variables CSS. 
-- Les modes **Clair (☀️)** et **Sombre (🌙)** sont gérés dynamiquement. Le design doit rester ultra-premium, avec un fort contraste et des effets de *Glassmorphism* sur les cartes.
-
----
-
-## 🔐 Variables d'environnement de Référence
-
-> ⛔ **Ne committez jamais `.env` ni `.env.local`.** Ils contiennent des clés secrètes.
-
-### `backend/.env`
-
-```bash
-SECRET_KEY=django-insecure-changeme-minimum-50-chars
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-DATABASE_URL=postgresql://komoe_user:VotreMotDePasse@localhost:5432/komoe_dev
-JWT_ACCESS_TOKEN_LIFETIME_MINUTES=60
-JWT_REFRESH_TOKEN_LIFETIME_DAYS=7
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-
-# Blockchain (Laisser vide en dev local)
-POLYGON_RPC_URL=
-CONTRACT_ADDRESS=
-DEPLOYER_PRIVATE_KEY=
-PINATA_JWT=
-PINATA_GATEWAY=https://gateway.pinata.cloud/ipfs
-```
-
-### `.env.local` (Frontend)
-
-```bash
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-NEXT_PUBLIC_USE_MOCK_DATA=false      
-NEXT_PUBLIC_ENABLE_BLOCKCHAIN=false  
-
-NEXT_PUBLIC_POLYGON_CHAIN_ID=80002
-NEXT_PUBLIC_POLYGON_RPC_URL=
-NEXT_PUBLIC_CONTRACT_ADDRESS=
-NEXT_PUBLIC_POLYGONSCAN_URL=https://amoy.polygonscan.com
-```
-
----
-
-## 🔜 Prochaines étapes — Phase 3
-
-> ⚠️ **Phase 3 = actions manuelles uniquement.** Aucun code à écrire.  
-> À faire seulement APRÈS que tout marche en local (Phase 2 validée).  
-> **Ne pas déployer le contrat (Phase 4) sans accord de l'équipe.**
-
-### Phase 3A — Alchemy (nœud RPC Polygon)
-
-1. Aller sur [alchemy.com](https://alchemy.com) → créer un compte gratuit
-2. Dashboard → **Create new app** → Chain: Polygon → Network: **Amoy (Testnet)**
-3. Copier l'URL HTTPS : `https://polygon-amoy.g.alchemy.com/v2/<CLE>`
-4. Coller dans `backend/.env` : `POLYGON_RPC_URL=<url>`
-5. Coller dans `.env.local` : `NEXT_PUBLIC_POLYGON_RPC_URL=<url>`
-
-### Phase 3B — MetaMask (wallet de développement)
-
-> ⚠️ Utiliser un wallet **dédié au dev uniquement** — jamais le wallet personnel.
-
-1. Installer l'extension MetaMask (Chrome/Firefox/Edge)
-2. Créer un nouveau wallet → noter la seed phrase en lieu sûr
-3. Ajouter le réseau Polygon Amoy manuellement :
-   - RPC URL : votre URL Alchemy (Phase 3A)
-   - Chain ID : `80002` | Symbol : `MATIC`
-   - Explorer : `https://amoy.polygonscan.com`
-4. Exporter la clé privée : `...` → Account details → Show private key
-5. Coller dans `backend/.env` : `DEPLOYER_PRIVATE_KEY=0x<cle>`
-
-### Phase 3C — MATIC de test (gas fees)
-
-1. Aller sur [faucet.polygon.technology](https://faucet.polygon.technology)
-2. Sélectionner **Amoy Testnet**
-3. Coller l'adresse du wallet MetaMask dev → Submit
-4. Attendre ~1 min → vérifier sur [amoy.polygonscan.com](https://amoy.polygonscan.com)
-
-### Phase 3D — Pinata (stockage IPFS justificatifs)
-
-1. Aller sur [pinata.cloud](https://pinata.cloud) → créer un compte gratuit (1 Go)
-2. **API Keys** → **New Key** → activer `pinFileToIPFS` + `pinJSONToIPFS`
-3. Copier le **JWT token** (commence par `eyJ...`)
-4. Coller dans `backend/.env` : `PINATA_JWT=<jwt>`
-
-### Phase 4 — Smart contract (après accord équipe)
-
-> 🛑 **Attendre le feu vert de Brou, Kablan et le reste de l'équipe avant de déployer.**
-
-1. Aller sur [remix.ethereum.org](https://remix.ethereum.org)
-2. Créer `BudgetLedger.sol` → coller le contenu de `contracts/contracts/BudgetLedger.sol`
-3. Compiler (version Solidity 0.8.x)
-4. Deploy → Environment: **Injected Provider — MetaMask** → réseau Polygon Amoy
-5. Copier l'adresse du contrat déployé (`0x...`)
-6. Mettre à jour `backend/.env` : `CONTRACT_ADDRESS=0x...`
-7. Mettre à jour `.env.local` : `NEXT_PUBLIC_CONTRACT_ADDRESS=0x...`
-8. Relancer Django + Next.js
-
----
-
-## 📊 État d'avancement — 10 phases
-
-| Phase | Description | État |
+| Email | Mot de passe | Rôle |
 |---|---|---|
-| **Phase 1** | Refactoring rôles (fusion JOURNALISTE, sidebar conditionnelle) | ✅ Fait |
-| **Phase 2** | Connexion API (hooks + pages branchées sur Django) | ✅ Fait |
-| **Phase 3** | Comptes externes — Alchemy, MetaMask, Pinata | ⏳ Manuel |
-| **Phase 4** | Valider les clés en local (`is_configured()=True`, test IPFS, test Polygon) | ⏳ Après P3 |
-| **Phase 5** | Déployer BudgetLedger.sol sur Polygon Amoy via Remix | ⏳ Manuel |
-| **Phase 6** | Tester le flux blockchain complet (TX hash, IPFS, Polygonscan) | ⏳ Après P5 |
-| **Phase 7** | Intégration Ethers.js frontend (lecture Polygon directe) | ⏳ IA code |
-| **Phase 8** | Score transparence dynamique + signalements + budget prévu/réel | ⏳ IA code |
-| **Phase 9** | Préparation démo hackathon (données réalistes + pitch 10 min) | ⏳ Équipe |
-| **🛑 Phase 10** | **Déploiement production — accord Brou, Kablan + équipe requis** | 🛑 Bloqué |
-
-> 📖 Voir [`PLAN.md`](./PLAN.md) pour le détail complet de chaque phase (qui fait quoi, étapes précises).
+| `dgddl@komoe.ci` | `Komoe@2024!` | DGDDL |
+| `cour.comptes@komoe.ci` | `Komoe@2024!` | Cour des Comptes |
+| `maire.abobo@komoe.ci` | `Komoe@2024!` | Maire |
+| `agent.abobo@komoe.ci` | `Komoe@2024!` | Agent Financier |
+| `citoyen@komoe.ci` | `Komoe@2024!` | Citoyen |
+| `journaliste@komoe.ci` | `Komoe@2024!` | Presse / ONG |
+| `bailleur@komoe.ci` | `Komoe@2024!` | Bailleur |
 
 ---
 
-## 🔄 Flux métier à tester (scénario jury)
-
-Ce flux doit fonctionner **100% en local** avant toute autre chose.
-
-```
-ÉTAPE 1 — Agent soumet une dépense
-  → Login : agent.abobo@komoe.ci
-  → /commune/transactions/nouvelle
-  → Remplir le formulaire → Soumettre
-  → Vérifier statut "SOUMIS" dans /commune/en-attente ✓
-
-ÉTAPE 2 — Maire valide
-  → Login : maire.abobo@komoe.ci
-  → /commune/validation → transaction visible
-  → Cliquer "Valider"
-  → Sans blockchain configurée : statut passe à VALIDE sans TX hash (normal)
-  → Avec blockchain (Phase 4) : TX hash Polygon visible ✓
-
-ÉTAPE 3 — DGDDL surveille
-  → Login : dgddl@komoe.ci
-  → /controle/alertes → transaction disparue des alertes ✓
-  → /controle/classement → score mis à jour ✓
-
-ÉTAPE 4 — Citoyen vérifie
-  → Login : citoyen@komoe.ci
-  → /public/transactions → transaction validée visible ✓
-  → /public/verifier → vérifier le TX hash ✓
-```
-
----
-
-## 🧪 Tests
-
-### Tests backend (pytest)
-
-```powershell
-cd backend
-venv\Scripts\activate
-pytest
-# → Doit afficher tous les tests en PASSED
-```
-
-### Vérification API manuelle (PowerShell)
-
-```powershell
-# Tester que l'API répond
-Invoke-RestMethod "http://localhost:8000/api/communes/" | ConvertTo-Json -Depth 2
-
-# Tester le login
-$r = Invoke-RestMethod -Uri "http://localhost:8000/api/auth/login/" `
-     -Method POST -ContentType "application/json" `
-     -Body '{"email":"dgddl@komoe.ci","password":"Komoe@2024!"}'
-Write-Host "Token OK : $($r.access.Substring(0,30))..."
-```
-
----
-
-## 📚 Documentation
-
-| Fichier | À lire pour... |
-|---|---|
-| **`README.md`** (ce fichier) | Comprendre le projet, démarrer en local, voir où on en est |
-| **[`STRUCTURE.md`](./STRUCTURE.md)** | Architecture détaillée : BD, API, blockchain, arborescence complète |
-| **[`PLAN.md`](./PLAN.md)** | Plan détaillé hackathon avec qui fait quoi à chaque phase |
-| `ContextDocs/BudgetOuvert_Contexte_Complet.md` | Contexte métier complet : acteurs, outils blockchain, flux |
-| `backend/.env.example` | Template variables backend (PostgreSQL) |
-| `.env.example` | Template variables frontend |
-
----
-
-*Hackathon MIABE 2026 — Darollo Technologies Corporation*  
-*Mise à jour : 02/05/2026*
+## 💡 Fonctionnalités Principales Développées
+- **Authentification & Redirection par Rôles** : Support multi-rôle complet via JWT.
+- **Registre des Transactions** : Enregistrement et consultation on-chain.
+- **Système de Validation Multisig** : Les transactions soumises par l'agent financier sont approuvées par le Maire puis scellées.
+- **Thème Premium Dynamique** : Support complet des modes **Sombre** et **Clair**, avec contrastes et visibilité optimisés pour une lisibilité maximale.
+- **Validation Intelligente des Catégories** : Normalisation souple des catégories de dépenses ODD, évitant toute erreur de validation 400.

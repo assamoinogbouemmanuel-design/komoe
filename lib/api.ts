@@ -230,3 +230,38 @@ export const transactionsApi = {
       { method: "PATCH" }
     ),
 };
+
+export interface Signalement {
+  id: string;
+  commune: number;
+  commune_detail: Commune;
+  sujet: string;
+  description: string;
+  auteur: string | null;
+  auteur_detail: UserProfile | null;
+  is_reviewed: boolean;
+  created_at: string;
+}
+
+export interface SignalementCreatePayload {
+  commune: number;
+  sujet: string;
+  description: string;
+}
+
+export const signalementsApi = {
+  list: (filters?: { commune?: number }) => {
+    const params = new URLSearchParams();
+    if (filters?.commune) params.set("commune", String(filters.commune));
+    const qs = params.toString();
+    return apiFetch<{ results: Signalement[]; count: number }>(
+      `/api/transactions/signalements/${qs ? `?${qs}` : ""}`
+    );
+  },
+  create: (payload: SignalementCreatePayload) =>
+    apiFetch<Signalement>("/api/transactions/signalements/", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+};
+

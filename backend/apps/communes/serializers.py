@@ -30,18 +30,19 @@ class CommuneSerializer(serializers.ModelSerializer):
         return int(result["total"] or 0)
 
     def get_score_transparence(self, obj):
-        depense = self.get_budget_depense_fcfa(obj)
-        tx_count = getattr(obj, "_tx_count", None)
-        if tx_count is None:
-            from apps.transactions.models import Transaction, TransactionStatut
-            tx_count = Transaction.objects.filter(
-                commune=obj, statut=TransactionStatut.VALIDE
-            ).count()
-        budget = obj.budget_annuel_fcfa or 0
-        if budget > 0:
-            rate = min(depense / budget, 1.0)
-            base = 40 + int(rate * 40)
-        else:
-            base = 20
-        tx_bonus = min(int(tx_count) * 3, 20)
-        return min(base + tx_bonus, 100)
+        """
+        Calcul du score de transparence (sur 100 points) :
+        transparency_score = (transactions_validées / total_transactions) * 100
+        Arrondi à 1 décimale, défaut 0.0 si aucune transaction.
+        """
+        from apps.transactions.models import Transaction, TransactionStatut
+        txs = Transaction.objects.filter(commune=obj)
+        total_count = txs.count()
+        if total_count == 0:
+            return 0.0
+
+        val_count = txs.filter(statut=TransactionStatut.VALIDE).count()
+        score = (val_count / total_count) * 100
+        return round(score, 1)
+
+

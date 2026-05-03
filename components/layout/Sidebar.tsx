@@ -115,7 +115,7 @@ export const Sidebar = ({ role, isMobileOpen, setIsMobileOpen, isCollapsed, setI
       {/* Sidebar Container */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col bg-brand-blue text-brand-blue-foreground border-r border-border transition-all duration-300 ease-in-out lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 dark:bg-black text-white border-r border-slate-800 transition-all duration-300 ease-in-out lg:static lg:translate-x-0",
           isMobileOpen ? "translate-x-0" : "-translate-x-full",
           isCollapsed ? "w-[80px]" : "w-[260px]"
         )}

@@ -18,14 +18,14 @@ class BlockchainService:
     def __init__(self):
         self._w3 = None
         self._contract = None
-
     def is_configured(self) -> bool:
-        """Vérifie si la blockchain est configurée (RPC URL + adresse contrat + clé privée)."""
+        """Vérifie si la blockchain est configurée (RPC URL + adresse contrat + Pinata JWT)."""
         return bool(
-            settings.POLYGON_RPC_URL
+            getattr(settings, "POLYGON_AMOY_RPC_URL", "")
             and settings.CONTRACT_ADDRESS
-            and settings.DEPLOYER_PRIVATE_KEY
+            and getattr(settings, "PINATA_JWT", "")
         )
+
 
     def _get_w3(self):
         """Initialise Web3 (lazy loading)."""

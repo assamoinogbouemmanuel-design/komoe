@@ -31,6 +31,8 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 
 class TransactionCreateSerializer(serializers.ModelSerializer):
+    categorie = serializers.CharField(required=False, allow_blank=True, default="AUTRE")
+
     class Meta:
         model = Transaction
         fields = ["commune", "type", "montant_fcfa", "categorie", "description", "periode", "ipfs_hash"]
@@ -40,7 +42,59 @@ class TransactionCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Le montant doit être positif.")
         return value
 
+    def validate_categorie(self, value):
+        from .models import CategorieDepense
+        if not value:
+            return CategorieDepense.AUTRE
+        # Nettoyer et normaliser
+        v = str(value).strip().upper()
+        if "INFRA" in v:
+            return CategorieDepense.INFRASTRUCTURE
+        if "SANT" in v or "HEALTH" in v:
+            return CategorieDepense.SANTE
+        if "EDUC" in v:
+            return CategorieDepense.EDUCATION
+        if "EAU" in v or "WATER" in v or "ASS" in v:
+            return CategorieDepense.EAU_ASSAINISSEMENT
+        if "SEC" in v:
+            return CategorieDepense.SECURITE
+        if "ADMIN" in v:
+            return CategorieDepense.ADMINISTRATION
+        if "AGRI" in v:
+            return CategorieDepense.AGRICULTURE
+        if "CULT" in v or "SPORT" in v:
+            return CategorieDepense.CULTURE_SPORT
+
+        valid_choices = [c[0] for c in CategorieDepense.choices]
+        if v in valid_choices:
+            return v
+
+        return CategorieDepense.AUTRE
+
     def create(self, validated_data):
         validated_data["soumis_par"] = self.context["request"].user
         validated_data["statut"] = TransactionStatut.SOUMIS
         return super().create(validated_data)
+
+
+
+class SignalementSerializer(serializers.ModelSerializer):
+    commune_detail = CommuneSerializer(source="commune", read_only=True)
+    auteur_detail = UserSerializer(source="auteur", read_only=True)
+
+    class Meta:
+        model = getattr(serializers.ModelSerializer, "Meta", object)
+        from .models import Signalement
+        model = Signalement
+        fields = [
+            "id", "commune", "commune_detail", "sujet", "description",
+            "auteur", "auteur_detail", "is_reviewed", "created_at"
+        ]
+        read_only_fields = ["id", "auteur", "is_reviewed", "created_at"]
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and request.user and request.user.is_authenticated:
+            validated_data["auteur"] = request.user
+        return super().create(validated_data)
+

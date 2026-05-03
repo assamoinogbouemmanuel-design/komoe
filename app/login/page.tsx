@@ -164,11 +164,12 @@ function LoginForm() {
           <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
             <span className="text-white font-black text-xl">K</span>
           </div>
-          <span className="text-5xl font-extrabold tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">KOMOE</span>
+          <span className="text-5xl font-extrabold tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 dark:from-white dark:to-gray-400">KOMOE</span>
           <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent/20 text-accent border border-accent/30 uppercase tracking-wider">Polygon Amoy</span>
         </div>
-        <p className="text-gray-300 text-lg font-medium">L'infrastructure de transparence budgétaire</p>
+        <p className="text-muted-foreground dark:text-gray-300 text-lg font-medium">L'infrastructure de transparence budgétaire</p>
       </motion.div>
+
 
       {/* Toggle Auth / Démo (Segmented Control) */}
       <motion.div 
@@ -203,8 +204,8 @@ function LoginForm() {
             initial="hidden" animate="visible" exit="exit" variants={fadeUpVariants}
             className="w-full max-w-md relative z-10"
           >
-            <div className="bg-card/5 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-white mb-6 text-center">Bienvenue</h2>
+            <div className="bg-card/50 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-8">
+              <h2 className="text-2xl font-bold text-foreground dark:text-white mb-6 text-center">Bienvenue</h2>
 
               {error && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 text-center font-medium">
@@ -214,7 +215,7 @@ function LoginForm() {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Adresse email</label>
+                  <label className="block text-sm font-medium text-foreground dark:text-gray-300 mb-1.5 ml-1">Adresse email</label>
                   <input
                     type="email"
                     value={email}
@@ -222,12 +223,12 @@ function LoginForm() {
                     required
                     autoComplete="email"
                     placeholder="vous@komoe.ci"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-muted/60 border border-border rounded-xl text-sm text-foreground dark:text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Mot de passe</label>
+                  <label className="block text-sm font-medium text-foreground dark:text-gray-300 mb-1.5 ml-1">Mot de passe</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -236,17 +237,18 @@ function LoginForm() {
                       required
                       autoComplete="current-password"
                       placeholder="••••••••"
-                      className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all pr-12"
+                      className="w-full px-4 py-3 bg-muted/60 border border-border rounded-xl text-sm text-foreground dark:text-white placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all pr-12"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
+
 
                 <Button
                   type="submit"
@@ -273,7 +275,7 @@ function LoginForm() {
             className="max-w-5xl w-full relative z-10"
           >
             <div className="text-center mb-8">
-              <p className="text-sm text-muted-foreground">Connexion automatique (Mot de passe : <span className="font-mono text-gray-300">Komoe@2024!</span>)</p>
+              <p className="text-sm text-muted-foreground">Connexion automatique (Mot de passe : <span className="font-mono text-foreground/80 dark:text-gray-300">Komoe@2024!</span>)</p>
             </div>
 
             <div className="space-y-8">
@@ -293,9 +295,9 @@ function LoginForm() {
                           onClick={() => loginAs(acc.email, acc.dest, acc.key)}
                           disabled={!!loadingKey}
                           className={cn(
-                            "group text-left bg-card/5 backdrop-blur-md border border-white/10 rounded-2xl p-5",
+                            "group text-left bg-card/40 backdrop-blur-md border border-border rounded-2xl p-5",
                             "flex flex-col gap-4 transition-all duration-300",
-                            "hover:bg-card/10 hover:shadow-xl hover:-translate-y-1",
+                            "hover:bg-card hover:shadow-xl hover:-translate-y-1",
                             acc.borderHover,
                             "disabled:opacity-50 disabled:cursor-not-allowed"
                           )}
@@ -305,11 +307,11 @@ function LoginForm() {
                               {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Icon className="w-6 h-6" />}
                             </div>
                             <div>
-                              <p className="text-sm font-bold text-white">{acc.label}</p>
+                              <p className="text-sm font-bold text-foreground dark:text-white">{acc.label}</p>
                               <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{acc.email}</p>
                             </div>
                           </div>
-                          <p className="text-xs text-muted-foreground leading-relaxed group-hover:text-gray-300 transition-colors">
+                          <p className="text-xs text-muted-foreground leading-relaxed group-hover:text-foreground dark:group-hover:text-gray-300 transition-colors">
                             {acc.desc}
                           </p>
                         </button>

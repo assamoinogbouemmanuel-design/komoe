@@ -84,3 +84,31 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.type} {self.montant_fcfa:,} FCFA — {self.commune.nom} ({self.statut})"
+
+
+class Signalement(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    commune = models.ForeignKey(
+        "communes.Commune",
+        on_delete=models.CASCADE,
+        related_name="signalements",
+    )
+    description = models.TextField()
+    sujet = models.CharField(max_length=200, default="Anomalie financière")
+    auteur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="signalements",
+    )
+    is_reviewed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "signalements"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Signalement {self.sujet} — {self.commune.nom}"
+

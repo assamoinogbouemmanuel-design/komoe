@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ShieldCheck, ExternalLink, Copy, Loader2 } from "lucide-react";
 import { useTransactionsList } from "@/lib/hooks/useTransactions";
-import { truncateHash, polygonscanTxUrl, formatFCFA, formatDateShort } from "@/lib/constants";
+import { truncateHash, polygonscanTxUrl, formatFCFA, formatDateShort, ipfsFileUrl } from "@/lib/constants";
 
 export default function PreuvesPage() {
   const { transactions, loading } = useTransactionsList();
@@ -57,7 +57,7 @@ export default function PreuvesPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-red-600" />
-            Journal d'audit immuable — Polygon Amoy
+            Journal d&apos;audit immuable — Polygon Amoy
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -93,12 +93,15 @@ export default function PreuvesPage() {
                 </div>
                 {tx.ipfs_hash && (
                   <div className="flex items-center gap-4 flex-wrap">
-                    <span className="flex items-center gap-1 text-xs text-teal-600 bg-teal-50 border border-teal-100 px-2 py-1 rounded-lg font-mono">
-                      IPFS: {tx.ipfs_hash}
-                      <button onClick={() => copyToClipboard(tx.ipfs_hash)} className="text-teal-400 hover:text-teal-600 ml-1" title="Copier hash IPFS">
-                        <Copy className="w-3 h-3" />
-                      </button>
-                    </span>
+                    <span className="text-xs font-semibold text-muted-foreground w-20 shrink-0">IPFS</span>
+                    <a
+                      href={ipfsFileUrl(tx.ipfs_hash)}
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs font-mono text-teal-600 bg-teal-50 border border-teal-100 px-2 py-1 rounded-lg hover:underline flex break-all"
+                    >
+                      {tx.ipfs_hash}
+                      <ExternalLink className="w-3 h-3 shrink-0" />
+                    </a>
                   </div>
                 )}
               </div>
@@ -109,3 +112,4 @@ export default function PreuvesPage() {
     </div>
   );
 }
+

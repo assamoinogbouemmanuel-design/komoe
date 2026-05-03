@@ -84,11 +84,11 @@ export default function DataTable<T extends { id: string | number }>({
       <div className="overflow-x-auto px-6 pb-6">
         <table className="min-w-full border-separate border-spacing-y-0">
           <thead>
-            <tr className="bg-muted">
+            <tr className="bg-slate-100/80 dark:bg-slate-800/80">
               {columns.map((col, index) => (
                 <th
                   key={String(col.key)}
-                  className={`py-4 px-4 text-left text-[13px] font-black text-foreground bg-muted/50 tracking-wider ${
+                  className={`py-4 px-4 text-left text-[13px] font-black text-foreground tracking-wider ${
                     index === 0 ? "rounded-l-2xl" : ""
                   } ${index === columns.length - 1 ? "rounded-r-2xl" : ""}`}
                 >

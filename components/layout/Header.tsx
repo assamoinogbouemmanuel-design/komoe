@@ -1,9 +1,11 @@
 "use client";
 
 import { Role, ROLE_LABELS } from '@/types';
-import { Bell, Wallet, Menu, Moon, Sun } from 'lucide-react';
+import { Bell, Wallet, Menu, Moon, Sun, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useTheme } from 'next-themes';
+import Link from 'next/link';
+
 
 interface HeaderProps {
   role: Role;
@@ -57,7 +59,18 @@ export const Header = ({ role, onOpenMobile }: HeaderProps) => {
           <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full ring-2 ring-background"></span>
         </Button>
 
+        <Link href="/login" title="Retour à la connexion">
+          <Button variant="outline" size="sm" className="hidden md:flex items-center gap-1.5 border-accent text-accent hover:bg-accent hover:text-accent-foreground font-semibold">
+            <ArrowLeft className="w-4 h-4" />
+            Retour
+          </Button>
+          <Button variant="outline" size="icon" className="md:hidden border-accent text-accent hover:bg-accent hover:text-accent-foreground">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        </Link>
+
         <div className="h-6 w-px bg-border hidden sm:block"></div>
+
 
         <div className="flex items-center gap-3">
           <div className="hidden md:block text-right">

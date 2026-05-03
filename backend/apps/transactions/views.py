@@ -135,3 +135,24 @@ def valider_transaction(request, pk):
             "transaction": TransactionSerializer(transaction).data,
         }
     )
+
+
+class SignalementListCreateView(generics.ListCreateAPIView):
+    """
+    Public / Citoyen : Liste ou création d'un signalement.
+    Si authentifié : l'auteur est automatiquement l'utilisateur connecté.
+    """
+    from .models import Signalement
+    queryset = Signalement.objects.all().select_related("commune", "auteur")
+    from .serializers import SignalementSerializer
+    serializer_class = SignalementSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        from .models import Signalement
+        qs = Signalement.objects.all().select_related("commune", "auteur")
+        commune_id = self.request.query_params.get("commune")
+        if commune_id:
+            qs = qs.filter(commune_id=commune_id)
+        return qs
+

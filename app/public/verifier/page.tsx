@@ -3,24 +3,58 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { ShieldCheck, Search, ExternalLink, XCircle } from "lucide-react";
+import { ShieldCheck, Search, ExternalLink, XCircle, CheckCircle } from "lucide-react";
 import { useTransactionsList } from "@/lib/hooks/useTransactions";
+import { useBlockchainVerify } from "@/lib/hooks/useBlockchainVerify";
 import { type Transaction } from "@/lib/api";
 import { formatFCFA, formatDateShort, polygonscanTxUrl } from "@/lib/constants";
 
 export default function VerifierPage() {
   const [hash, setHash] = useState("");
   const [result, setResult] = useState<Transaction | null | "not_found">(null);
+  const [blockchainInfo, setBlockchainInfo] = useState<{ blockNumber: number; confirmations: number; status: string } | null>(null);
   const { transactions } = useTransactionsList();
+  const { verifyTransaction } = useBlockchainVerify();
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    setBlockchainInfo(null);
     const found = transactions.find(
       (t) => t.blockchain_tx_hash_validation?.toLowerCase().includes(hash.toLowerCase()) ||
              t.ipfs_hash?.toLowerCase().includes(hash.toLowerCase()) ||
              String(t.id).toLowerCase() === hash.toLowerCase()
     );
-    setResult(found ?? "not_found");
+
+    if (found) {
+      setResult(found);
+      if (found.blockchain_tx_hash_validation) {
+        const info = await verifyTransaction(found.blockchain_tx_hash_validation);
+        if (info) {
+          setBlockchainInfo(info);
+        }
+      }
+    } else {
+      if (hash.startsWith("0x") && hash.length === 66) {
+        const info = await verifyTransaction(hash);
+        if (info) {
+          setBlockchainInfo(info);
+          setResult({
+            id: "onchain_only",
+            description: "Transaction enregistrée directement sur Polygon",
+            montant_fcfa: 0,
+            type: "DEPENSE",
+            statut: "VALIDE",
+            categorie: "Extraction Directe",
+            created_at: new Date().toISOString(),
+            validated_at: new Date().toISOString(),
+            blockchain_tx_hash_validation: hash,
+            commune: 0,
+          } as any);
+          return;
+        }
+      }
+      setResult("not_found");
+    }
   };
 
   return (
@@ -123,10 +157,23 @@ export default function VerifierPage() {
                   <span className="text-xs font-mono text-teal-600 bg-teal-50 px-2 py-1 rounded-lg break-all">{result.ipfs_hash}</span>
                 </div>
               )}
+
+              {blockchainInfo && (
+                <div className="border-t border-border pt-3 mt-1 flex flex-wrap gap-4">
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Bloc de validation</span>
+                    <span className="text-sm font-semibold text-foreground">#{blockchainInfo.blockNumber}</span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block">Confirmations</span>
+                    <span className="text-sm font-semibold text-foreground">{blockchainInfo.confirmations}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <Badge variant="success" className="w-fit">
-              <ShieldCheck className="w-3 h-3 mr-1" /> Statut: Confirmé
+            <Badge variant={blockchainInfo?.status === "Échoué" ? "destructive" : "success"} className="w-fit">
+              <CheckCircle className="w-3 h-3 mr-1" /> Statut: {blockchainInfo?.status || "Confirmé on-chain"}
             </Badge>
           </CardContent>
         </Card>
@@ -134,3 +181,5 @@ export default function VerifierPage() {
     </div>
   );
 }
+
+

@@ -19,7 +19,7 @@ const DateRangePicker = (props: any) => <input type="date" {...props} className=
 // Input Standard
 export const FormField = ({ label, required, children }: any) => (
   <div className="flex flex-col gap-2 w-full">
-    <label className="text-sm font-bold text-white tracking-tight">
+    <label className="text-sm font-bold text-foreground/90 tracking-tight dark:text-white/90">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     {children}
@@ -30,7 +30,7 @@ export const FormField = ({ label, required, children }: any) => (
 export const Input = (props: any) => (
   <input
     {...props}
-    className="w-full bg-card/5 border-none rounded-2xl p-4 text-white/80 placeholder:text-white/40 focus:ring-2 focus:ring-primary transition-all outline-none"
+    className="w-full bg-muted/50 border border-border rounded-2xl p-4 text-foreground dark:text-white placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
   />
 );
 
@@ -40,7 +40,7 @@ export const Select = ({ children, disabled, ...props }: any) => (
     <select
       {...props}
       disabled={disabled}
-      className={`w-full bg-card/5 border-none rounded-2xl p-4 text-white/80 appearance-none outline-none focus:ring-2 focus:ring-primary transition-all ${disabled ? 'opacity-60 cursor-not-allowed bg-card/10' : ''}`}
+      className={`w-full bg-muted/50 border border-border rounded-2xl p-4 text-foreground dark:text-white appearance-none outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${disabled ? 'opacity-60 cursor-not-allowed bg-card/10' : ''}`}
     >
       {children}
     </select>
@@ -59,13 +59,13 @@ export const PasswordInput = ({ disabled, ...props }: any) => {
         {...props}
         disabled={disabled}
         type={show ? "text" : "password"}
-        className={`w-full bg-card/5 border-none rounded-2xl p-4 pr-12 text-white/80 outline-none focus:ring-2 focus:ring-primary transition-all ${disabled ? 'opacity-60 cursor-not-allowed bg-card/10' : ''}`}
+        className={`w-full bg-muted/50 border border-border rounded-2xl p-4 pr-12 text-foreground dark:text-white placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${disabled ? 'opacity-60 cursor-not-allowed bg-card/10' : ''}`}
       />
       {!disabled && (
         <button
           type="button"
           onClick={() => setShow(!show)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
         >
           {show ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
@@ -73,6 +73,7 @@ export const PasswordInput = ({ disabled, ...props }: any) => {
     </div>
   );
 };
+
 
 // Champ Checkbox
 export const Checkbox = ({ name, label, required, defaultChecked, onChange, disabled }: any) => (
@@ -562,7 +563,7 @@ export const RichTextEditor = ({ label, placeholder, name, defaultValue, onChang
           ref={editorRef}
           contentEditable
           suppressContentEditableWarning
-          className="w-full min-h-[180px] p-5 text-white/80 outline-none bg-transparent prose prose-slate max-w-none leading-relaxed"
+          className="w-full min-h-[180px] p-5 text-foreground dark:text-white/80 outline-none bg-transparent prose prose-slate max-w-none leading-relaxed"
           onInput={handleInput}
         />
         <input type="hidden" name={name} id={`hidden-${name}`} ref={hiddenRef} />

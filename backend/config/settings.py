@@ -65,26 +65,50 @@ WSGI_APPLICATION = "config.wsgi.application"
 # SQLite par défaut en local — aucune installation requise
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
 if DATABASE_URL and DATABASE_URL.startswith("postgresql"):
     import urllib.parse as urlparse
+    import psycopg2
     url = urlparse.urlparse(DATABASE_URL)
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": url.path[1:],
-            "USER": url.username,
-            "PASSWORD": url.password,
-            "HOST": url.hostname,
-            "PORT": url.port or 5432,
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
+    db_name = url.path[1:]
+    db_options = [db_name, db_name + " ", "komoe_dev", "komoe_dev "]
+    connected = False
+    for name in db_options:
+        try:
+            conn = psycopg2.connect(
+                dbname=name,
+                user=url.username,
+                password=url.password,
+                host=url.hostname,
+                port=url.port or 5432,
+                connect_timeout=1
+            )
+            conn.close()
+            DATABASES["default"] = {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": name,
+                "USER": url.username,
+                "PASSWORD": url.password,
+                "HOST": url.hostname,
+                "PORT": url.port or 5432,
+            }
+            connected = True
+            break
+        except Exception:
+            continue
+    if not connected:
+        DATABASES["default"] = {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
-    }
+
+
 
 # ─── Modèle utilisateur custom ────────────────────────────────────────────────
 AUTH_USER_MODEL = "users.User"
@@ -124,9 +148,11 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 CORS_ALLOW_CREDENTIALS = True
 
 # ─── Blockchain ───────────────────────────────────────────────────────────────
-POLYGON_RPC_URL = os.getenv("POLYGON_RPC_URL", "")
+POLYGON_RPC_URL = os.getenv("POLYGON_AMOY_RPC_URL") or os.getenv("POLYGON_RPC_URL", "")
+POLYGON_AMOY_RPC_URL = os.getenv("POLYGON_AMOY_RPC_URL") or os.getenv("POLYGON_RPC_URL", "")
 CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "")
 DEPLOYER_PRIVATE_KEY = os.getenv("DEPLOYER_PRIVATE_KEY", "")
+
 
 # ─── IPFS ─────────────────────────────────────────────────────────────────────
 PINATA_JWT = os.getenv("PINATA_JWT", "")
