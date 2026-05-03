@@ -69,7 +69,6 @@ L'application web tourne sur `http://localhost:3000`.
 ---
 
 ## 👥 Rôles Utilisateurs & Comptes de Test
-Tous ces comptes sont automatiquement créés par la commande `seed_data` :
 
 | Email | Mot de passe | Rôle |
 |---|---|---|
