@@ -154,15 +154,15 @@ export const TransactionsView = ({ role }: TransactionsViewProps) => {
           </p>
         </div>
         <div className="flex gap-3">
-          {(role === 'DGDDL' || role === 'COUR_COMPTES' || role === 'JOURNALISTE') && (
-            <Button variant="outline" size="sm" onClick={() => exportCSV(txs)}>
+          {(role === 'DGDDL' || role === 'COUR_COMPTES' || role === 'JOURNALISTE' || role === 'AGENT_FINANCIER' || role === 'MAIRE') && (
+            <Button variant="outline" size="sm" onClick={() => exportCSV(txs)} className="rounded-xl border-border font-bold">
               <Download className="w-4 h-4 mr-2" />
               Exporter CSV
             </Button>
           )}
           {role === 'AGENT_FINANCIER' && (
             <Link href="/commune/transactions/nouvelle">
-              <Button className="bg-brand-orange hover:bg-[#b05020] text-white shadow-md">
+              <Button className="bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 rounded-xl font-black px-6">
                 + Nouvelle saisie
               </Button>
             </Link>

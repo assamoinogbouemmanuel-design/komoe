@@ -1,0 +1,203 @@
+"use client";
+
+import { useState } from "react";
+import { FormField, Input, Select, PdfUpload, RichTextEditor, QuoteItemsInput, QuoteItemData } from "@/components/ui/ReusableForm";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
+import { transactionsApi, type ApiError } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
+
+interface DepenseFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export const DepenseForm = ({ onSuccess, onCancel }: DepenseFormProps) => {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [quoteItems, setQuoteItems] = useState<QuoteItemData[]>([]);
+  
+  const [files, setFiles] = useState<File[]>([]);
+  
+  const [form, setForm] = useState({
+    type: "DEPENSE" as "DEPENSE" | "RECETTE",
+    montant_fcfa: "",
+    categorie: "Infrastructure",
+    description: "",
+    periode: new Date().toISOString().slice(0, 7),
+  });
+
+  const totalHT = quoteItems.reduce((acc, item) => acc + (item.quantity * item.unit_price), 0);
+  const totalTTC = totalHT * 1.18;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.commune) { 
+      setApiError("Aucune commune associée à votre compte. Veuillez vous reconnecter."); 
+      return; 
+    }
+    
+    if (!form.description || form.description.length < 10) {
+      setApiError("Veuillez fournir une description détaillée (min. 10 caractères).");
+      return;
+    }
+
+    setLoading(true);
+    setApiError(null);
+    try {
+      const montantFinal = totalTTC > 0 ? totalTTC : Number(form.montant_fcfa);
+      
+      if (montantFinal <= 0) {
+        throw new Error("Le montant de la transaction doit être supérieur à 0.");
+      }
+
+      // Simulation IPFS Hash pour la démo
+      const mockIpfsHash = files.length > 0 ? "Qm" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) : undefined;
+
+      await transactionsApi.soumettre({
+        commune: user.commune,
+        type: form.type,
+        montant_fcfa: montantFinal,
+        categorie: form.categorie,
+        description: form.description,
+        periode: form.periode,
+        ipfs_hash: mockIpfsHash,
+      });
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/commune/transactions");
+      }
+    } catch (err: any) {
+      setApiError(err?.message || (err as ApiError)?.message || "Erreur lors de la soumission sur la blockchain.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 pb-20">
+      <Card className="shadow-2xl border-border bg-card/40 backdrop-blur-xl rounded-[32px] overflow-hidden border">
+        <CardContent className="p-8 space-y-8">
+          
+          <div className="space-y-6">
+            <h3 className="text-lg font-black text-foreground uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-6 bg-primary rounded-full"></span>
+              Informations Générales
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField label="Nature de l'opération" required>
+                <Select required value={form.type} onChange={(e: any) => setForm(f => ({ ...f, type: e.target.value }))}>
+                  <option value="DEPENSE">Dépense (Décaissement)</option>
+                  <option value="RECETTE">Recette (Encaissement)</option>
+                </Select>
+              </FormField>
+
+              <FormField label="Montant (FCFA)" required={quoteItems.length === 0}>
+                <div className="relative">
+                  <Input 
+                    type="number" 
+                    placeholder="Ex: 1500000" 
+                    value={quoteItems.length > 0 ? totalTTC.toFixed(0) : form.montant_fcfa} 
+                    onChange={(e: any) => setForm(f => ({ ...f, montant_fcfa: e.target.value }))}
+                    disabled={quoteItems.length > 0}
+                    className={quoteItems.length > 0 ? "bg-primary/5 border-primary/20 text-primary font-black" : ""}
+                  />
+                  {quoteItems.length > 0 && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                      <span className="text-[10px] font-black text-primary uppercase bg-primary/10 px-2 py-1 rounded-md">Calculé via devis</span>
+                    </div>
+                  )}
+                </div>
+              </FormField>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField label="Domaine d'intervention (ODD)" required>
+                <Select required value={form.categorie} onChange={(e: any) => setForm(f => ({ ...f, categorie: e.target.value }))}>
+                  <option value="Infrastructure">Infrastructures & Travaux (ODD 9)</option>
+                  <option value="Sante">Santé & Bien-être (ODD 3)</option>
+                  <option value="Education">Éducation de qualité (ODD 4)</option>
+                  <option value="Eau">Eau & Assainissement (ODD 6)</option>
+                  <option value="Administration">Fonctionnement administratif</option>
+                  <option value="Agriculture">Agriculture & Souveraineté (ODD 2)</option>
+                  <option value="Social">Action Sociale & Solidarité</option>
+                  <option value="Autre">Autres interventions</option>
+                </Select>
+              </FormField>
+
+              <FormField label="Période comptable" required>
+                <Input type="month" required value={form.periode} onChange={(e: any) => setForm(f => ({ ...f, periode: e.target.value }))} />
+              </FormField>
+            </div>
+          </div>
+
+          <div className="space-y-6 pt-4">
+            <h3 className="text-lg font-black text-foreground uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-6 bg-accent rounded-full"></span>
+              Détails & Justificatifs
+            </h3>
+            
+            <FormField label="Description de la dépense" required>
+              <RichTextEditor 
+                name="description" 
+                placeholder="Décrivez précisément l'objet de cette dépense, les bénéficiaires et l'impact attendu..." 
+                defaultValue={form.description}
+                onChange={(val: string) => setForm(f => ({ ...f, description: val }))} 
+              />
+            </FormField>
+
+            <FormField label="Lignes de devis / Détails des articles">
+               <QuoteItemsInput onChange={setQuoteItems} />
+            </FormField>
+
+            <FormField label="Preuves Blockchain (Factures, Devis, Bons en PDF)">
+              <PdfUpload 
+                name="documents" 
+                maxPDFs={3} 
+                placeholder="Glissez-déposez vos justificatifs scannés ici" 
+                onChange={setFiles}
+              />
+            </FormField>
+          </div>
+        </CardContent>
+      </Card>
+
+      {apiError && (
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl animate-in zoom-in-95 duration-200">
+          <p className="text-sm font-bold text-red-600 dark:text-red-400 text-center">{apiError}</p>
+        </div>
+      )}
+      
+      <div className="flex justify-end gap-4">
+        <Button 
+          type="button" 
+          variant="ghost" 
+          onClick={onCancel}
+          className="font-bold text-muted-foreground hover:text-foreground h-14 px-8 rounded-2xl"
+        >
+          Annuler
+        </Button>
+        <Button 
+          type="submit" 
+          disabled={loading} 
+          className="bg-primary hover:bg-primary/90 text-white h-14 px-10 rounded-2xl font-black text-lg shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"
+        >
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Signature en cours...
+            </span>
+          ) : (
+            "Soumettre sur la Blockchain"
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+};

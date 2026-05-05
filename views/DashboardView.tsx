@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { Role, ROLE_LABELS } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -11,7 +13,9 @@ import {
   Wallet, PieChart, BarChart3, Receipt, Building2, Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 import StatsCard from '@/components/ui/StatsCard';
+import { useRouter } from 'next/navigation';
 import { useCommunesList } from '@/lib/hooks/useCommunes';
 import { useCommuneTransactions, useTransactionsList, STATUT_LABELS, STATUT_VARIANT } from '@/lib/hooks/useTransactions';
 import { useAuth } from '@/lib/auth-context';
@@ -46,15 +50,23 @@ const ErrorState = ({ msg }: { msg: string }) => (
 
 // ─── Shared sub-components ───────────────────────────────────────────────────
 
-const RecentTransactionsBlock = ({ txs, title, loading, error }: {
-  txs: Transaction[]; title: string; loading?: boolean; error?: string | null;
-}) => (
+const RecentTransactionsBlock = ({ txs, title, loading, error, viewAllHref }: {
+  txs: Transaction[]; title: string; loading?: boolean; error?: string | null; viewAllHref?: string;
+}) => {
+  const router = useRouter();
+
+  return (
   <Card className="h-full flex flex-col">
-    <CardHeader className="border-b border-border dark:border-white/5 pb-4">
+    <CardHeader className="border-b border-border dark:border-white/5 pb-4 flex flex-row items-center justify-between">
       <CardTitle className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
         <Activity className="w-4 h-4 text-accent" />
         {title}
       </CardTitle>
+      {viewAllHref && txs.length > 0 && (
+        <Button variant="ghost" size="sm" onClick={() => router.push(viewAllHref)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10">
+          Voir tout
+        </Button>
+      )}
     </CardHeader>
     <CardContent className="flex-1 p-0 overflow-y-auto no-scrollbar">
       {loading && <div className="p-8"><LoadingState /></div>}
@@ -73,7 +85,8 @@ const RecentTransactionsBlock = ({ txs, title, loading, error }: {
               animate={{ opacity: 1, x: 0 }} 
               transition={{ delay: idx * 0.05 }}
               key={tx.id} 
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-5 hover:bg-muted/50 dark:hover:bg-card/5 transition-colors group"
+              onClick={() => router.push(`/commune/transactions/${tx.id}`)}
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-5 hover:bg-muted/50 dark:hover:bg-card/5 transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-4">
                 <div className={`p-2.5 rounded-xl shrink-0 ${tx.type === 'DEPENSE' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'}`}>
@@ -108,7 +121,8 @@ const RecentTransactionsBlock = ({ txs, title, loading, error }: {
       )}
     </CardContent>
   </Card>
-);
+  );
+};
 
 const ScoreBar = ({ score }: { score: number }) => (
   <div className="w-24 bg-muted dark:bg-card/5 rounded-full h-1.5 overflow-hidden">
@@ -123,6 +137,7 @@ const ScoreBar = ({ score }: { score: number }) => (
 
 // ─── AGENT FINANCIER ─────────────────────────────────────────────────────────
 const AgentDashboard = ({ communeId }: { communeId: number }) => {
+  const router = useRouter();
   const { transactions: all, loading, error } = useCommuneTransactions(communeId);
   const enAttente = all.filter(t => t.statut === 'SOUMIS' || t.statut === 'BROUILLON');
   const valides = all.filter(t => t.statut === 'VALIDE');
@@ -133,34 +148,75 @@ const AgentDashboard = ({ communeId }: { communeId: number }) => {
   if (error) return <ErrorState msg={error} />;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatsCard label="Mes saisies ce mois" value={all.length} icon={<Receipt />} />
-        <StatsCard label="En attente de validation" value={enAttente.length} icon={<Clock />} />
-        <StatsCard label="Budget disponible" value={(commune?.budget_annuel_fcfa ?? 0) - (commune?.budget_depense_fcfa ?? 0)} isCurrency icon={<Wallet />} />
+    <div className="space-y-8 animate-in fade-in duration-700">
+      
+      {/* Header Premium Agent */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card/50 backdrop-blur-xl border border-border p-8 rounded-[32px] shadow-2xl shadow-primary/5">
+        <div>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Tableau de Bord Agent</h1>
+          <p className="text-muted-foreground mt-1 font-medium italic">
+            Commune de <span className="text-primary font-bold">{commune?.nom || "Abidjan"}</span> — Signature Blockchain active 🔐
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button 
+            onClick={() => router.push('/commune/transactions/nouvelle')} 
+            className="bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 px-8 font-black text-base shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"
+          >
+            + Nouvelle Saisie
+          </Button>
+          <Button 
+            onClick={() => router.push('/commune/budget')} 
+            variant="outline" 
+            className="rounded-2xl h-14 px-6 border-border font-bold hover:bg-muted/50"
+          >
+            Gérer Budget
+          </Button>
+        </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatsCard label="Mes saisies ce mois" value={all.length} icon={<Receipt className="text-primary" />} />
+        <StatsCard label="En attente de validation" value={enAttente.length} icon={<Clock className="text-amber-500" />} />
+        <StatsCard label="Budget disponible" value={(commune?.budget_annuel_fcfa ?? 0) - (commune?.budget_depense_fcfa ?? 0)} isCurrency icon={<Wallet className="text-emerald-500" />} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <RecentTransactionsBlock txs={valides} title="Transactions validées" />
+          <RecentTransactionsBlock txs={valides} title="Dernières transactions validées" viewAllHref="/commune/transactions" />
         </div>
         <div className="lg:col-span-1">
-          <Card className="h-full bg-gradient-to-br from-amber-50 to-orange-50/30 border-amber-200">
-            <CardHeader>
-              <CardTitle className="text-amber-700 flex items-center gap-2">
-                <Clock className="w-4 h-4" /> À valider par le Maire
+          <Card className="h-full bg-gradient-to-br from-amber-50/50 to-orange-100/10 dark:from-amber-900/10 dark:to-orange-900/5 border-amber-200/50 dark:border-amber-900/30 rounded-[32px] shadow-xl">
+            <CardHeader className="pb-4 border-b border-amber-200/20">
+              <CardTitle className="text-amber-700 dark:text-amber-500 flex items-center gap-2 text-sm font-black uppercase tracking-widest">
+                <Clock className="w-4 h-4" /> En attente de signature
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {enAttente.slice(0, 5).map((tx) => (
-                <div key={tx.id} className="p-3 bg-card/60 rounded-xl border border-amber-100 shadow-sm">
+            <CardContent className="space-y-4 pt-6">
+              {enAttente.slice(0, 6).map((tx) => (
+                <div 
+                  key={tx.id} 
+                  onClick={() => router.push(`/commune/transactions/${tx.id}`)}
+                  className="p-4 bg-card/80 backdrop-blur-sm rounded-2xl border border-amber-200/30 dark:border-amber-900/40 shadow-sm cursor-pointer hover:border-amber-400 dark:hover:border-amber-700 transition-all hover:translate-x-1"
+                >
                   <p className="font-bold text-foreground text-sm line-clamp-1">{tx.description}</p>
                   <div className="flex justify-between items-end mt-2">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground">{formatDateShort(tx.created_at)}</p>
-                    <p className="font-black text-amber-700 tabular-nums">{formatFCFA(tx.montant_fcfa)}</p>
+                    <p className="text-[10px] uppercase font-black text-muted-foreground tracking-tighter opacity-70">{formatDateShort(tx.created_at)}</p>
+                    <p className="font-black text-amber-700 dark:text-amber-500 tabular-nums text-sm">{formatFCFA(tx.montant_fcfa)}</p>
                   </div>
                 </div>
               ))}
-              {enAttente.length === 0 && <p className="text-xs font-semibold text-amber-600/50 text-center">Aucune transaction en attente.</p>}
+              {enAttente.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 text-amber-600/30">
+                   <CheckCircle className="w-12 h-12 mb-2 opacity-10" />
+                   <p className="text-xs font-black uppercase tracking-widest">Tout est à jour</p>
+                </div>
+              )}
+              {enAttente.length > 6 && (
+                <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-700" onClick={() => router.push('/commune/en-attente')}>
+                  Voir tout ({enAttente.length})
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -171,60 +227,109 @@ const AgentDashboard = ({ communeId }: { communeId: number }) => {
 
 // ─── MAIRE ────────────────────────────────────────────────────────────────────
 const MaireDashboard = ({ communeId }: { communeId: number }) => {
+  const router = useRouter();
+  const [signingId, setSigningId] = useState<string | null>(null);
   const { transactions: all, loading, error, refetch } = useCommuneTransactions(communeId);
   const enAttente = all.filter(t => t.statut === 'SOUMIS');
   const valides = all.filter(t => t.statut === 'VALIDE');
   const { communes } = useCommunesList();
   const commune = communes.find(c => c.id === communeId);
+  
   const txRate = commune && commune.budget_annuel_fcfa > 0
     ? ((commune.budget_depense_fcfa / commune.budget_annuel_fcfa) * 100).toFixed(1)
     : '0.0';
 
   const handleValider = async (id: string) => {
-    const { transactionsApi } = await import('@/lib/api');
-    await transactionsApi.valider(id);
-    refetch();
+    setSigningId(id);
+    try {
+      const { transactionsApi } = await import('@/lib/api');
+      await transactionsApi.valider(id);
+      refetch();
+    } catch (err) {
+      console.error("Erreur de signature", err);
+    } finally {
+      setSigningId(null);
+    }
   };
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState msg={error} />;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard label="Budget Restant" value={(commune?.budget_annuel_fcfa ?? 0) - (commune?.budget_depense_fcfa ?? 0)} isCurrency icon={<Wallet />} />
-        <StatsCard label="Dépenses Cumulées" value={commune?.budget_depense_fcfa ?? 0} isCurrency icon={<PieChart />} />
-        <StatsCard label="Taux d'exécution" value={`${txRate}%`} icon={<Activity />} />
-        <StatsCard label="Score Transparence" value={commune?.score_transparence ?? 0} icon={<ShieldCheck />} />
+    <div className="space-y-8 animate-in fade-in duration-700">
+      
+      {/* Header Premium Maire */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card border border-border p-8 rounded-[32px] shadow-2xl shadow-primary/5">
+        <div>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Bonjour, Monsieur le Maire</h1>
+          <p className="text-muted-foreground mt-1 font-medium italic">
+            Commune de <span className="text-primary font-bold">{commune?.nom || "Abidjan"}</span> — Autorité de validation Blockchain
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button 
+            onClick={() => router.push('/commune/validation')} 
+            className="bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 px-8 font-black text-base shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"
+          >
+            File de Validation ({enAttente.length})
+          </Button>
+          <Button 
+            onClick={() => router.push('/commune/signalements')} 
+            variant="outline" 
+            className="rounded-2xl h-14 px-6 border-border font-bold hover:bg-muted/50"
+          >
+            Signalements
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatsCard label="Budget Restant" value={(commune?.budget_annuel_fcfa ?? 0) - (commune?.budget_depense_fcfa ?? 0)} isCurrency icon={<Wallet className="text-primary" />} />
+        <StatsCard label="Dépenses Cumulées" value={commune?.budget_depense_fcfa ?? 0} isCurrency icon={<PieChart className="text-amber-500" />} />
+        <StatsCard label="Taux d'exécution" value={`${txRate}%`} icon={<Activity className="text-emerald-500" />} />
+        <StatsCard label="Score Transparence" value={commune?.score_transparence ?? 0} icon={<ShieldCheck className="text-purple-500" />} />
       </div>
       
       {enAttente.length > 0 && (
-        <Card className="border-2 border-amber-400 bg-amber-50/50 dark:bg-amber-900/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-500">
+        <Card className="border-2 border-amber-400/50 bg-amber-50/30 dark:bg-amber-900/10 rounded-[32px] shadow-xl overflow-hidden">
+          <CardHeader className="bg-amber-400/10 border-b border-amber-400/20 p-6">
+            <CardTitle className="flex items-center gap-3 text-amber-800 dark:text-amber-500 font-black uppercase tracking-widest text-sm">
               <CheckCircle className="w-5 h-5 animate-pulse" />
               Actions requises : {enAttente.length} transaction(s) en attente de signature
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="p-6 space-y-4">
             {enAttente.map((tx) => (
-              <div key={tx.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-card rounded-xl shadow-sm border border-amber-200 dark:border-amber-900/50">
-                <div className="mb-3 sm:mb-0">
-                  <p className="font-bold text-foreground dark:text-white">{tx.description}</p>
-                  <p className="text-xs font-semibold text-muted-foreground mt-1 uppercase tracking-wider">{tx.categorie} · {formatDateShort(tx.created_at)}</p>
+              <div 
+                key={tx.id} 
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 bg-card rounded-[24px] shadow-sm border border-amber-200/50 dark:border-amber-900/50 hover:border-amber-400 transition-all group cursor-pointer"
+                onClick={() => router.push(`/commune/transactions/${tx.id}`)}
+              >
+                <div className="mb-4 sm:mb-0">
+                  <p className="font-black text-lg text-foreground dark:text-white group-hover:text-primary transition-colors">{tx.description}</p>
+                  <p className="text-xs font-bold text-muted-foreground mt-1 uppercase tracking-widest">{tx.categorie} · {formatDateShort(tx.created_at)}</p>
                   {tx.ipfs_hash && (
-                    <a href={tx.ipfs_url || '#'} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-primary hover:underline flex items-center gap-1 mt-2 bg-primary/5 w-max px-2 py-1 rounded-md">
-                      <ExternalLink className="w-3 h-3" /> Justificatif IPFS
-                    </a>
+                    <span className="text-[10px] font-black text-primary hover:underline flex items-center gap-1.5 mt-3 bg-primary/5 w-max px-3 py-1.5 rounded-xl border border-primary/10">
+                      <ExternalLink className="w-3.5 h-3.5" /> Preuve IPFS Scellée
+                    </span>
                   )}
                 </div>
-                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3">
-                  <p className="font-black text-rose-600 text-lg tabular-nums">{formatFCFA(tx.montant_fcfa)}</p>
+                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-4">
+                  <p className="font-black text-rose-600 text-2xl tabular-nums">{formatFCFA(tx.montant_fcfa)}</p>
                   <button
-                    onClick={() => handleValider(tx.id)}
-                    className="text-xs font-bold px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-transform hover:scale-105 shadow-md shadow-primary/20 flex items-center gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleValider(tx.id);
+                    }}
+                    disabled={signingId === tx.id}
+                    className="text-xs font-black px-6 py-3 bg-primary text-white rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50 disabled:scale-100"
                   >
-                    <CheckCircle className="w-3.5 h-3.5" /> Signer sur Polygon
+                    {signingId === tx.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="w-4 h-4" />
+                    )}
+                    Signer sur Polygon
                   </button>
                 </div>
               </div>
@@ -233,8 +338,8 @@ const MaireDashboard = ({ communeId }: { communeId: number }) => {
         </Card>
       )}
       
-      <div className="h-[400px]">
-        <RecentTransactionsBlock txs={valides} title="Dernières transactions confirmées (Blockchain)" />
+      <div className="pt-4">
+        <RecentTransactionsBlock txs={valides} title="Journal d'audit Blockchain (Validés)" viewAllHref="/commune/transactions" />
       </div>
     </div>
   );

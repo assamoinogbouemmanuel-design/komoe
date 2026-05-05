@@ -48,9 +48,13 @@ async function apiFetch<T>(
   const accessToken = tokens.getAccess();
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
+
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
   if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
 
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });

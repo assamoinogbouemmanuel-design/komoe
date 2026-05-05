@@ -10,11 +10,32 @@ import {
 // import { DateRangePicker } from "@/components/AgeFilter"; // Commented out to prevent crash
 // import { DateRange } from "react-day-picker";
 // import { format } from "date-fns";
-
-// Mocking missing dependencies for now to ensure compilation
 type DateRange = any;
-const format = (d: any, f: string) => d.toISOString();
-const DateRangePicker = (props: any) => <input type="date" {...props} className="w-full bg-card/5 rounded-2xl p-4 text-white/80" />;
+
+// Robust helper for date formatting in form fields
+const format = (d: any, f: string) => {
+  if (!d) return "";
+  try {
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return "";
+    return date.toISOString().split('T')[0];
+  } catch {
+    return "";
+  }
+};
+
+const DateRangePicker = ({ date, onDateChange, placeholder, className, singleDate }: any) => (
+  <div className={`relative ${className}`}>
+    <input 
+      type={singleDate ? "date" : "text"} 
+      value={date?.from ? (date.from instanceof Date ? date.from.toISOString().split('T')[0] : date.from) : ""}
+      onChange={(e) => onDateChange({ from: new Date(e.target.value), to: new Date(e.target.value) })}
+      placeholder={placeholder}
+      className="w-full bg-muted/50 border border-border rounded-2xl p-4 text-foreground dark:text-white outline-none focus:ring-2 focus:ring-primary transition-all" 
+    />
+    {!singleDate && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px] font-black uppercase tracking-widest pointer-events-none">Période</span>}
+  </div>
+);
 
 // Input Standard
 export const FormField = ({ label, required, children }: any) => (

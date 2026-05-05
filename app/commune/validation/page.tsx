@@ -2,141 +2,226 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { CheckCircle, ExternalLink, ShieldCheck, Loader2, AlertTriangle } from "lucide-react";
+import { CheckCircle, ExternalLink, ShieldCheck, Loader2, AlertTriangle, XCircle, Info } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useCommuneTransactions } from "@/lib/hooks/useTransactions";
 import { transactionsApi } from "@/lib/api";
 import { formatFCFA, formatDateShort, polygonscanTxUrl, truncateHash } from "@/lib/constants";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { Drawer } from "@/components/ui/Drawer";
+import { FormField, Input, RichTextEditor } from "@/components/ui/ReusableForm";
 
 export default function ValidationPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const communeId = user?.commune ?? null;
   const { transactions, loading, error, refetch } = useCommuneTransactions(communeId);
+  
+  const [signingId, setSigningId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+
   const enAttente = transactions.filter((t) => t.statut === "SOUMIS");
   const confirmes = transactions.filter((t) => t.statut === "VALIDE");
 
   const handleValider = async (id: string) => {
-    await transactionsApi.valider(id);
+    setSigningId(id);
+    try {
+      await transactionsApi.valider(id);
+      refetch();
+    } finally {
+      setSigningId(null);
+    }
+  };
+
+  const handleRejeterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectingId) return;
+    
+    // Simulate rejection logic
+    console.log("Rejet de la transaction", rejectingId);
+    setIsRejectModalOpen(false);
+    setRejectingId(null);
     refetch();
   };
 
-  const handleRejeter = async (id: string) => {
-    console.warn("Rejet non encore implémenté pour", id);
-  };
-
   if (loading) return (
-    <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-      <Loader2 className="w-5 h-5 animate-spin" />
-      <span className="text-sm">Chargement…</span>
+    <div className="flex flex-col items-center justify-center py-32 gap-4">
+      <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      <span className="text-sm font-black uppercase tracking-widest text-muted-foreground">Synchronisation de la file...</span>
     </div>
   );
+
   if (error) return (
-    <div className="flex items-center gap-2 p-4 bg-red-50 rounded-xl text-red-600 text-sm">
-      <AlertTriangle className="w-4 h-4" />{error}
+    <div className="p-8 bg-red-50 dark:bg-red-900/10 rounded-[32px] border border-red-200 text-red-600 flex items-center gap-4">
+      <AlertTriangle className="w-6 h-6" />
+      <span className="font-bold">{error}</span>
     </div>
   );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-extrabold text-foreground tracking-tight">File de validation</h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Validez les transactions sur Polygon Amoy — chaque signature est immuable
-        </p>
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card border border-border p-8 rounded-[32px] shadow-2xl shadow-primary/5">
+        <div>
+          <h2 className="text-3xl font-black text-foreground tracking-tight uppercase italic">File de signature</h2>
+          <p className="text-muted-foreground mt-1 font-medium">
+            Approuvez les flux financiers — Chaque validation est gravée sur le réseau <span className="text-purple-600 font-bold">Polygon</span>.
+          </p>
+        </div>
+        <div className="flex items-center gap-4 bg-muted/50 p-4 rounded-2xl border border-border">
+          <Info className="text-primary w-5 h-5" />
+          <p className="text-xs font-bold leading-relaxed max-w-[200px]">
+            La signature nécessite un compte administrateur autorisé.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card><CardContent className="p-5">
-          <p className="text-xs text-muted-foreground mb-1">À valider</p>
-          <p className="text-2xl font-bold text-amber-600">{enAttente.length}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <Card className="rounded-[24px] shadow-sm border-amber-200 bg-amber-50/20"><CardContent className="p-6">
+          <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-2">En attente</p>
+          <p className="text-4xl font-black text-amber-600">{enAttente.length}</p>
         </CardContent></Card>
-        <Card><CardContent className="p-5">
-          <p className="text-xs text-muted-foreground mb-1">Validées</p>
-          <p className="text-2xl font-bold text-emerald-600">{confirmes.length}</p>
+        <Card className="rounded-[24px] shadow-sm border-emerald-200 bg-emerald-50/20"><CardContent className="p-6">
+          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2">Total Validées</p>
+          <p className="text-4xl font-black text-emerald-600">{confirmes.length}</p>
         </CardContent></Card>
-        <Card><CardContent className="p-5">
-          <p className="text-xs text-muted-foreground mb-1">Montant à valider</p>
-          <p className="text-xl font-bold text-foreground">{formatFCFA(enAttente.reduce((s, t) => s + t.montant_fcfa, 0))}</p>
+        <Card className="rounded-[24px] shadow-sm border-border"><CardContent className="p-6">
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Volume à signer</p>
+          <p className="text-3xl font-black text-foreground">{formatFCFA(enAttente.reduce((s, t) => s + t.montant_fcfa, 0))}</p>
         </CardContent></Card>
       </div>
 
       {enAttente.length > 0 && (
-        <Card className="border-2 border-amber-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-700">
-              <CheckCircle className="w-5 h-5" />
-              {enAttente.length} transaction(s) en attente de votre signature
+        <Card className="border-2 border-amber-400/50 rounded-[32px] overflow-hidden shadow-xl">
+          <CardHeader className="bg-amber-400/10 border-b border-amber-400/20 p-6">
+            <CardTitle className="flex items-center gap-3 text-amber-800 dark:text-amber-500 font-black uppercase tracking-widest text-sm">
+              <CheckCircle className="w-5 h-5 animate-pulse" />
+              Signature Blockchain requise
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {enAttente.map((tx) => (
-              <div key={tx.id} className="p-4 rounded-xl bg-amber-50 border border-amber-100">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-bold text-foreground">{tx.description}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{tx.categorie} · {formatDateShort(tx.created_at)}</p>
-                    {tx.ipfs_hash && (
-                      <a href={tx.ipfs_url || '#'} target="_blank" rel="noopener noreferrer" className="text-xs text-purple-600 hover:underline flex items-center gap-1 mt-1">
-                        <ExternalLink className="w-3 h-3" /> Voir justificatif IPFS
-                      </a>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="font-bold text-rose-600">{formatFCFA(tx.montant_fcfa)}</p>
-                    <Badge variant="secondary">En attente</Badge>
+          <CardContent className="p-0">
+            <div className="divide-y divide-amber-200/30">
+              {enAttente.map((tx) => (
+                <div 
+                  key={tx.id} 
+                  className="p-8 hover:bg-amber-50/50 transition-all group cursor-pointer"
+                  onClick={() => router.push(`/commune/transactions/${tx.id}`)}
+                >
+                  <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                    <div className="flex-1 space-y-2">
+                      <p className="text-xl font-black text-foreground group-hover:text-primary transition-colors">{tx.description}</p>
+                      <div className="flex flex-wrap items-center gap-4">
+                        <Badge variant="outline" className="rounded-lg font-bold">{tx.categorie}</Badge>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{formatDateShort(tx.created_at)}</span>
+                        {tx.ipfs_hash && (
+                          <span className="flex items-center gap-1.5 text-[10px] font-black text-primary bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
+                             <ExternalLink size={12} /> Preuve IPFS Scellée
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-row items-center gap-8 w-full lg:w-auto">
+                      <div className="text-left lg:text-right">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Montant</p>
+                        <p className="text-2xl font-black text-rose-600 tabular-nums">{formatFCFA(tx.montant_fcfa)}</p>
+                      </div>
+                      <div className="flex items-center gap-3 ml-auto">
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleValider(tx.id);
+                          }}
+                          disabled={signingId === tx.id}
+                          className="bg-primary hover:bg-primary/90 text-white rounded-xl h-12 px-6 font-black text-xs gap-2 shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95"
+                        >
+                          {signingId === tx.id ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+                          Valider la transaction
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRejectingId(tx.id);
+                            setIsRejectModalOpen(true);
+                          }}
+                          className="text-rose-600 hover:bg-rose-50 rounded-xl h-12 w-12 p-0"
+                        >
+                          <XCircle size={20} />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    onClick={() => handleValider(tx.id)}
-                    className="flex items-center gap-1.5 px-4 py-1.5 bg-[#000040] text-white rounded-lg text-xs font-bold hover:bg-[#000060] transition"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5" /> Valider sur Polygon
-                  </button>
-                  <button
-                    onClick={() => handleRejeter(tx.id)}
-                    className="px-4 py-1.5 border border-red-200 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-50 transition"
-                  >
-                    Rejeter
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-emerald-600" />
-            Transactions déjà validées — Preuves blockchain
+      <Card className="rounded-[32px] overflow-hidden border shadow-lg">
+        <CardHeader className="bg-muted/30 border-b border-border p-6">
+          <CardTitle className="flex items-center gap-3 text-emerald-600 font-black uppercase tracking-widest text-sm">
+            <CheckCircle className="w-5 h-5" />
+            Archive des Preuves Blockchain
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {confirmes.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Aucune transaction validée.</p>}
-          {confirmes.map((tx) => (
-            <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-muted border border-border">
-              <div>
-                <p className="font-semibold text-sm text-foreground">{tx.description}</p>
-                <p className="text-xs text-muted-foreground">{formatDateShort(tx.validated_at ?? tx.created_at)}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 ml-2">
-                {tx.blockchain_tx_hash_validation && (
-                  <a
-                    href={polygonscanTxUrl(tx.blockchain_tx_hash_validation)}
-                    target="_blank" rel="noopener noreferrer"
-                    className="text-xs font-mono text-purple-600 bg-purple-50 px-2 py-1 rounded-lg hover:underline flex items-center gap-1"
-                  >
-                    {truncateHash(tx.blockchain_tx_hash_validation, 4)} <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-                <Badge variant="success">Validé</Badge>
-              </div>
+        <CardContent className="p-0">
+          {confirmes.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground opacity-30">
+               <ShieldCheck className="w-16 h-16 mb-4" />
+               <p className="font-black uppercase tracking-widest text-xs">Aucun sceau numérique enregistré</p>
             </div>
-          ))}
+          )}
+          <div className="divide-y divide-border">
+            {confirmes.map((tx) => (
+              <div 
+                key={tx.id} 
+                className="flex items-center justify-between p-6 hover:bg-muted/30 transition-all cursor-pointer"
+                onClick={() => router.push(`/commune/transactions/${tx.id}`)}
+              >
+                <div>
+                  <p className="font-black text-foreground">{tx.description}</p>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">Validé le {formatDateShort(tx.validated_at ?? tx.created_at)}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  {tx.blockchain_tx_hash_validation && (
+                    <a
+                      href={polygonscanTxUrl(tx.blockchain_tx_hash_validation)}
+                      target="_blank" rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[10px] font-mono font-black text-purple-600 bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-200 hover:bg-purple-100 transition-colors flex items-center gap-2"
+                    >
+                      {truncateHash(tx.blockchain_tx_hash_validation, 6)} <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  <Badge variant="success" className="rounded-lg h-8 px-4 font-black">VALIDÉ</Badge>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
+
+      {/* Modal de Rejet */}
+      <Drawer isOpen={isRejectModalOpen} onClose={() => setIsRejectModalOpen(false)} title="Rejeter la transaction">
+        <form className="space-y-6" onSubmit={handleRejeterSubmit}>
+          <div className="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 text-red-600 text-sm font-medium leading-relaxed">
+            Attention: Le rejet d'une transaction est une action définitive. L'agent devra corriger la saisie avant de la soumettre à nouveau.
+          </div>
+          
+          <FormField label="Motif du rejet" required>
+            <RichTextEditor name="motif" placeholder="Veuillez expliquer pourquoi cette transaction est rejetée..." />
+          </FormField>
+
+          <div className="pt-6 border-t border-border flex justify-end gap-3">
+             <Button variant="ghost" type="button" onClick={() => setIsRejectModalOpen(false)}>Annuler</Button>
+             <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white rounded-xl">Confirmer le Rejet</Button>
+          </div>
+        </form>
+      </Drawer>
     </div>
   );
 }

@@ -141,10 +141,13 @@ function LoginForm() {
 
   const loginAs = async (accEmail: string, dest: string, key: string) => {
     setLoadingKey(key);
+    setError(null);
     try {
       await login({ email: accEmail, password: "Komoe@2024!" });
       router.push(dest);
-    } catch {
+    } catch (err) {
+      const apiErr = err as ApiError;
+      setError(apiErr.message ?? `Échec connexion démo (${accEmail}). Avez-vous lancé : python manage.py migrate && python manage.py seed_data ?`);
       setLoadingKey(null);
     }
   };
@@ -277,6 +280,12 @@ function LoginForm() {
             <div className="text-center mb-8">
               <p className="text-sm text-muted-foreground">Connexion automatique (Mot de passe : <span className="font-mono text-foreground/80 dark:text-gray-300">Komoe@2024!</span>)</p>
             </div>
+
+            {error && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 text-center font-medium">
+                {error}
+              </motion.div>
+            )}
 
             <div className="space-y-8">
               {DEMO_GROUPS.map((group, idx) => (

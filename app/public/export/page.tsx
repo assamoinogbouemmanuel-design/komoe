@@ -1,7 +1,10 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Download, FileText, Table } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
+import StatsCard from "@/components/ui/StatsCard";
+import { Download, FileText, Table, Globe, Database, Terminal, Zap, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { useCommunesList } from "@/lib/hooks/useCommunes";
 import { useTransactionsList } from "@/lib/hooks/useTransactions";
 import { formatFCFA } from "@/lib/constants";
@@ -23,9 +26,10 @@ export default function PublicExportPage() {
 
   const EXPORTS = [
     {
-      titre: "Communes CI — Open Data",
-      desc: `${communes.length} communes · budgets · scores · régions`,
-      icone: Table,
+      titre: "Annuaire des Collectivités",
+      desc: `${communes.length} communes · budgets · scores · géographie`,
+      icone: Globe,
+      color: "text-blue-500",
       action: () => exportCSV(
         communes.map((c) => ({
           id: c.id, nom: c.nom, region: c.region,
@@ -36,94 +40,129 @@ export default function PublicExportPage() {
       ),
     },
     {
-      titre: "Transactions publiques vérifiées",
-      desc: `${confirmes.length} transactions blockchain · hash Polygon · IPFS`,
-      icone: FileText,
+      titre: "Registre Blockchain (Scellé)",
+      desc: `${confirmes.length} transactions vérifiées on-chain · Polygon Amoy`,
+      icone: Zap,
+      color: "text-amber-500",
       action: () => exportCSV(
         confirmes.map((t) => ({
           id: t.id, commune_id: t.commune, type: t.type, montant: t.montant_fcfa,
           categorie: t.categorie, date: t.created_at, statut: t.statut,
           tx_hash: t.blockchain_tx_hash_validation, ipfs_hash: t.ipfs_hash ?? "",
         })),
-        "komoe_open_transactions.csv"
+        "komoe_open_transactions_blockchain.csv"
       ),
     },
     {
-      titre: "Toutes les transactions validées",
-      desc: `${txs.length} transactions validées`,
-      icone: Table,
+      titre: "Flux d'Activité National",
+      desc: `${txs.length} transactions validées par les mairies`,
+      icone: FileText,
+      color: "text-primary",
       action: () => exportCSV(
         txs.map((t) => ({
           id: t.id, commune_id: t.commune, type: t.type, montant: t.montant_fcfa,
           categorie: t.categorie, description: t.description, statut: t.statut, date: t.created_at,
         })),
-        "komoe_open_toutes_transactions.csv"
+        "komoe_open_full_activity.csv"
       ),
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Export CSV / API</h2>
-        <p className="text-muted-foreground mt-1 text-sm">Données ouvertes KOMOE — librement réutilisables</p>
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-card border border-border p-8 rounded-[32px] shadow-2xl shadow-primary/5">
+        <div>
+          <h2 className="text-3xl font-black text-foreground tracking-tight uppercase italic flex items-center gap-3">
+             <Database className="text-primary" /> Open Data Portal
+          </h2>
+          <p className="text-muted-foreground mt-2 font-medium max-w-2xl">
+             Accédez librement aux données financières nationales. Toutes les informations publiées sont certifiées par notre infrastructure blockchain.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-xl border border-primary/20">
+           <Share2 size={14} className="fill-primary" />
+           <span className="text-[10px] font-black uppercase tracking-widest">Licence Ouverte</span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card><CardContent className="p-5">
-          <p className="text-xs text-muted-foreground mb-1">Communes disponibles</p>
-          <p className="text-2xl font-bold text-foreground">{communes.length}</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-5">
-          <p className="text-xs text-muted-foreground mb-1">Transactions on-chain</p>
-          <p className="text-2xl font-bold text-foreground">{confirmes.length}</p>
-        </CardContent></Card>
-        <Card><CardContent className="p-5">
-          <p className="text-xs text-muted-foreground mb-1">Volume total public</p>
-          <p className="text-xl font-bold text-foreground truncate">{formatFCFA(confirmes.reduce((s, t) => s + t.montant_fcfa, 0))}</p>
-        </CardContent></Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatsCard label="Communes Libres" value={communes.length} icon={<Globe className="text-primary" />} />
+        <StatsCard label="Transactions On-Chain" value={confirmes.length} icon={<Zap className="text-amber-500" />} />
+        <StatsCard label="Flux Audités" value={txs.length} icon={<FileText className="text-blue-500" />} />
+        <StatsCard label="Format" value="CSV / JSON" icon={<Table className="text-emerald-500" />} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Download className="w-5 h-5 text-foreground" />
-            Fichiers disponibles en téléchargement
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {EXPORTS.map(({ titre, desc, icone: Icon, action }) => (
-            <div key={titre} className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-muted transition">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#000040]/10 rounded-xl flex items-center justify-center shrink-0">
-                  <Icon className="w-5 h-5 text-foreground" />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <Card className="lg:col-span-3 shadow-2xl border-border rounded-[32px] overflow-hidden border">
+          <CardHeader className="p-8 border-b border-border bg-muted/30">
+            <CardTitle className="text-lg font-black uppercase tracking-widest text-foreground">Datasets Disponibles</CardTitle>
+          </CardHeader>
+          <CardContent className="p-8 space-y-4">
+            {EXPORTS.map(({ titre, desc, icone: Icon, action, color }) => (
+              <div key={titre} className="group flex items-center justify-between p-6 rounded-[24px] bg-white border border-border hover:shadow-xl transition-all hover:border-primary/30">
+                <div className="flex items-center gap-5">
+                  <div className={`w-14 h-14 bg-muted/50 ${color} rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110`}>
+                    <Icon size={24} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-black text-base text-foreground group-hover:text-primary transition-colors">{titre}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">{desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-sm text-foreground">{titre}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                <Button onClick={action} className="h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-black shadow-lg shadow-primary/20">
+                   <Download size={16} className="mr-2" /> CSV
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="shadow-2xl border-border rounded-[32px] overflow-hidden border bg-slate-900 text-white">
+            <CardHeader className="p-8 border-b border-white/10 bg-white/5">
+              <CardTitle className="text-lg font-black uppercase tracking-widest flex items-center gap-3">
+                <Terminal className="w-5 h-5 text-primary" />
+                API REST For Developers
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Automatisez vos analyses en utilisant nos points de terminaison API. Authentification non requise pour les données publiques.
+              </p>
+              
+              <div className="space-y-4 font-mono text-[10px]">
+                <div className="bg-black/40 rounded-xl p-4 border border-white/5 group">
+                   <p className="text-primary font-black mb-1">GET /api/communes/</p>
+                   <p className="text-slate-500 italic">// Liste complète des communes</p>
+                </div>
+                <div className="bg-black/40 rounded-xl p-4 border border-white/5 group">
+                   <p className="text-primary font-black mb-1">GET /api/transactions/</p>
+                   <p className="text-slate-500 italic">// Filtres: ?statut=CONFIRME</p>
                 </div>
               </div>
-              <button
-                onClick={action}
-                className="flex items-center gap-2 bg-[#000040] text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-[#000060] transition shrink-0 ml-4"
-              >
-                <Download className="w-3.5 h-3.5" /> CSV
-              </button>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
 
-      <Card className="border-blue-200 bg-blue-50/30">
-        <CardContent className="p-5">
-          <p className="font-semibold text-foreground mb-1">API REST publique</p>
-          <p className="text-sm text-muted-foreground mb-3">Accès programmatique aux données KOMOE.</p>
-          <div className="space-y-1 font-mono text-xs text-foreground">
-            <p className="bg-card border border-blue-100 px-3 py-1.5 rounded-lg">GET /api/communes/</p>
-            <p className="bg-card border border-blue-100 px-3 py-1.5 rounded-lg">GET /api/transactions/?statut=CONFIRME</p>
-          </div>
-        </CardContent>
-      </Card>
+              <div className="pt-4">
+                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 py-2 rounded-lg w-full justify-center">
+                   Statut API: OPÉRATIONNEL
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[32px] border-border shadow-xl">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
+                 <Share2 size={24} />
+              </div>
+              <h4 className="text-sm font-black uppercase text-foreground mb-2">Partagez la vérité</h4>
+              <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                Les données KOMOE sont publiées sous licence <span className="text-primary font-bold">Creative Commons 4.0</span>. 
+                Utilisez-les pour vos articles de presse, thèses ou applications.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

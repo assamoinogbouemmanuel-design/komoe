@@ -54,7 +54,7 @@ const NAV_COMMUNE: NavItem[] = [
   { name: 'Citoyens',                href: '/commune/citoyens',              icon: Users,          onlyFor: ['MAIRE'] },
   { name: 'Signalements',            href: '/commune/signalements',          icon: AlertTriangle,  onlyFor: ['MAIRE'] },
   { name: 'Rôles & Accès',           href: '/commune/roles',                 icon: Shield,         onlyFor: ['MAIRE'] },
-  { name: 'Réseau Polygon',          href: '/commune/blockchain',            icon: Network,        onlyFor: ['MAIRE'] },
+  { name: 'Réseau Polygon',          href: '/commune/blockchain',            icon: Network },
 ];
 
 const NAV_PUBLIC: NavItem[] = [
